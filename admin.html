@@ -251,11 +251,6 @@
             font-size: 12px;
         }
 
-        .chart-box {
-            position: relative;
-            height: 340px;
-        }
-
         .survey-select {
             min-width: 180px;
         }
@@ -344,37 +339,213 @@
             background: #e0e7ff;
         }
 
+        .results-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .results-toolbar label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .results-toolbar .field {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .results-toolbar select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .results-summary-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .summary-card {
+            flex: 1;
+            min-width: 140px;
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid #c7d2fe;
+        }
+
+        .summary-card .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6366f1;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .summary-card .value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #312e81;
+            line-height: 1.1;
+        }
+
+        .summary-card .sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
         .result-block {
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 14px;
-            background: #f8fafc;
+            border-radius: 14px;
+            margin-bottom: 18px;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
         }
 
-        .result-block h3 {
-            margin: 0 0 8px;
-            font-size: 15px;
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff;
+            flex-wrap: wrap;
         }
 
-        .result-grid {
+        .result-header h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .result-header .qnum {
+            background: rgba(255, 255, 255, 0.22);
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .result-header .qbadge {
+            background: rgba(255, 255, 255, 0.22);
+            padding: 2px 9px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .result-body {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 0;
         }
 
-        @media (max-width: 900px) {
-            .result-grid {
+        @media (max-width: 760px) {
+            .result-body {
                 grid-template-columns: 1fr;
             }
         }
 
+        .chart-wrap {
+            padding: 14px;
+            border-right: 1px solid #eef2f7;
+            min-width: 0;
+        }
+
+        @media (max-width: 760px) {
+            .chart-wrap {
+                border-right: none;
+                border-bottom: 1px solid #eef2f7;
+            }
+        }
+
+        .chart-canvas-wrap {
+            position: relative;
+            width: 100%;
+            height: 260px;
+            min-height: 260px;
+        }
+
+        @media (max-width: 640px) {
+            .chart-canvas-wrap {
+                height: 220px;
+                min-height: 220px;
+            }
+        }
+
+        .chart-canvas-wrap canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .answers-wrap {
+            padding: 14px;
+            min-width: 0;
+        }
+
+        .answers-wrap .answers-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .answers-list {
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        @media (max-width: 640px) {
+            .answers-list {
+                max-height: 220px;
+            }
+        }
+
+        .answers-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .answers-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 6px;
+        }
+
         .answer-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: flex-start;
-            padding: 8px 0;
-            border-bottom: 1px solid #eef2f7;
+            padding: 7px 0;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .answer-row:last-child {
@@ -387,26 +558,30 @@
         }
 
         .answer-content .q {
-            font-size: 12px;
+            font-size: 11px;
             color: #64748b;
+            font-weight: 600;
+            margin-bottom: 1px;
         }
 
         .answer-content .a {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
+            color: #1f2937;
             word-break: break-word;
+            line-height: 1.35;
         }
 
-        .live-badge {
-            display: inline-flex;
+        .empty-chart {
+            display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            background: rgba(255, 255, 255, 0.18);
-            padding: 4px 10px;
-            border-radius: 10px;
+            justify-content: center;
+            height: 100%;
+            color: #94a3b8;
+            font-size: 13px;
+            text-align: center;
+            padding: 10px;
         }
-
 
         @keyframes pulse {
             0% {
@@ -443,13 +618,26 @@
                 font-size: 16px;
             }
 
-            .chart-box {
-                height: 280px;
-            }
-
             .menu {
                 right: 10px;
                 top: 58px;
+            }
+
+            .results-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .results-toolbar .field {
+                width: 100%;
+            }
+
+            .summary-card .value {
+                font-size: 18px;
+            }
+
+            .result-header h3 {
+                font-size: 13px;
             }
         }
     </style>
@@ -536,19 +724,25 @@
 
         <div id="tab-results" class="tab-hidden">
             <div class="card">
-                <h2>Общий результат</h2>
-                <div class="row">
-                    <select id="resultSurveySelect" class="survey-select" onchange="renderResults()"></select>
-                    <select id="chartType" onchange="renderResults()">
-                        <option value="bar">Столбчатая</option>
-                        <option value="horizontalBar">Горизонтальная</option>
-                        <option value="doughnut">Кольцевая</option>
-                        <option value="pie">Круговая</option>
-                        <option value="polarArea">Полярная</option>
-                        <option value="radar">Радар</option>
-                    </select>
+                <h2>Результаты анкетирования</h2>
+                <div class="results-toolbar">
+                    <div class="field">
+                        <label>Анкета</label>
+                        <select id="resultSurveySelect" onchange="renderResults()"></select>
+                    </div>
+                    <div class="field">
+                        <label>Тип диаграммы</label>
+                        <select id="chartType" onchange="renderResults()">
+                            <option value="bar">Столбчатая</option>
+                            <option value="horizontalBar">Горизонтальная</option>
+                            <option value="doughnut">Кольцевая</option>
+                            <option value="pie">Круговая</option>
+                            <option value="polarArea">Полярная</option>
+                            <option value="radar">Радар</option>
+                        </select>
+                    </div>
                 </div>
-                <div id="resultSummary" class="muted" style="margin-bottom:10px"></div>
+                <div id="resultSummary" class="results-summary-bar"></div>
                 <div id="resultsContainer"></div>
             </div>
         </div>
@@ -1150,22 +1344,44 @@
             return a || '—';
         }
 
+        function truncate(str, max) {
+            if (!str) return '';
+            return str.length > max ? str.slice(0, max - 1) + '…' : str;
+        }
+
         function renderResults() {
             const sId = document.getElementById('resultSurveySelect').value;
             const survey = state.surveys.find(s => s.id === sId);
-            const summary = document.getElementById('resultSummary');
+            const summaryBox = document.getElementById('resultSummary');
             const container = document.getElementById('resultsContainer');
             state.charts.forEach(c => c.destroy());
             state.charts = [];
 
             if (!survey) {
-                summary.textContent = '';
+                summaryBox.innerHTML = '';
                 container.innerHTML = '<p class="muted">Выберите анкету</p>';
                 return;
             }
 
             const responses = state.responses.filter(r => r.surveyId === sId);
-            summary.innerHTML = `Всего ответов: <strong>${responses.length}</strong>`;
+
+            summaryBox.innerHTML = `
+                <div class="summary-card">
+                    <div class="label">Ответов</div>
+                    <div class="value">${responses.length}</div>
+                    <div class="sub">всего получено</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Вопросов</div>
+                    <div class="value">${survey.questions.length}</div>
+                    <div class="sub">в анкете</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Участников</div>
+                    <div class="value">${new Set(responses.map(r => r.botId)).size}</div>
+                    <div class="sub">уникальных</div>
+                </div>
+            `;
 
             if (!responses.length) {
                 container.innerHTML = '<p class="muted">Нет ответов по этой анкете</p>';
@@ -1179,15 +1395,22 @@
             survey.questions.forEach((q, idx) => {
                 const block = document.createElement('div');
                 block.className = 'result-block';
-                block.innerHTML = `<h3>${idx + 1}. ${escapeHtml(q.text)}</h3>
-      <div class="result-grid">
-        <div>
-          <div class="chart-box" style="height:260px"><canvas></canvas></div>
-        </div>
-        <div>
-          <div class="answers-list"></div>
-        </div>
-      </div>`;
+                block.innerHTML = `
+                    <div class="result-header">
+                        <div class="qnum">${idx + 1}</div>
+                        <h3>${escapeHtml(q.text)}</h3>
+                        <span class="qbadge">${responses.length} отв.</span>
+                    </div>
+                    <div class="result-body">
+                        <div class="chart-wrap">
+                            <div class="chart-canvas-wrap"><canvas></canvas></div>
+                        </div>
+                        <div class="answers-wrap">
+                            <div class="answers-title">Ответы респондентов</div>
+                            <div class="answers-list"></div>
+                        </div>
+                    </div>
+                `;
                 container.appendChild(block);
 
                 const counts = {};
@@ -1199,94 +1422,151 @@
 
                 let labels, values;
                 if (q.type === 'open' || q.type === 'semi') {
-                    const arr = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-                    labels = arr.map(x => x[0]);
+                    const arr = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+                    labels = arr.map(x => truncate(x[0], 24));
                     values = arr.map(x => x[1]);
                 } else {
-                    labels = q.options.slice();
-                    values = labels.map(l => counts[l] || 0);
+                    labels = q.options.map(o => truncate(o, 24));
+                    values = q.options.map(l => counts[l] || 0);
                 }
 
                 const canvas = block.querySelector('canvas');
+                const wrap = block.querySelector('.chart-canvas-wrap');
+
                 if (!labels.length || values.every(v => v === 0)) {
-                    block.querySelector('.chart-box').innerHTML = '<p class="muted">Нет данных для диаграммы</p>';
+                    wrap.innerHTML = '<div class="empty-chart">Нет данных для диаграммы</div>';
                 } else {
                     const ctx = canvas.getContext('2d');
                     const colors = smartColors(labels, values);
-                    let chart;
-                    if (chartType === 'horizontalBar') {
-                        chart = new Chart(ctx, {
-                            type: 'bar',
-                            data: { labels, datasets: [{ label: 'Количество', data: values, backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
-                            options: {
-                                indexAxis: 'y',
-                                responsive: true, maintainAspectRatio: false,
-                                animation: { duration: 700, easing: 'easeOutQuart' },
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: 'rgba(15,23,42,0.92)', padding: 10, cornerRadius: 10,
-                                        callbacks: { label: c => { const t = values.reduce((a, b) => a + b, 0) || 1; return ` ${c.parsed.x} (${Math.round(c.parsed.x / t * 100)}%)`; } }
+                    const isRadar = chartType === 'radar';
+                    const isHBar = chartType === 'horizontalBar';
+
+                    const baseOptions = {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 600, easing: 'easeOutQuart' },
+                        layout: { padding: { top: 4, bottom: 4, left: 4, right: 4 } },
+                        plugins: {
+                            legend: {
+                                display: isCircular,
+                                position: 'bottom',
+                                labels: {
+                                    padding: 10,
+                                    font: { size: 11, family: "'Segoe UI', Arial, sans-serif" },
+                                    boxWidth: 12,
+                                    boxHeight: 12,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15,23,42,0.94)',
+                                padding: 10,
+                                cornerRadius: 8,
+                                titleFont: { size: 12 },
+                                bodyFont: { size: 12 },
+                                callbacks: {
+                                    label: (c) => {
+                                        const t = values.reduce((a, b) => a + b, 0) || 1;
+                                        const v = isCircular ? c.parsed : (isHBar ? c.parsed.x : c.parsed.y);
+                                        return ` ${v} (${Math.round(v / t * 100)}%)`;
                                     }
-                                },
-                                scales: {
-                                    x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eef2f7' } },
-                                    y: { grid: { display: false } }
                                 }
                             }
-                        });
-                    } else if (chartType === 'radar') {
-                        chart = new Chart(ctx, {
-                            type: 'radar',
-                            data: { labels, datasets: [{ label: 'Количество', data: values, backgroundColor: 'rgba(99,102,241,0.25)', borderColor: '#6366f1', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#fff', pointRadius: 4 }] },
-                            options: {
-                                responsive: true, maintainAspectRatio: false,
-                                animation: { duration: 700, easing: 'easeOutQuart' },
-                                plugins: { legend: { display: false } },
-                                scales: { r: { beginAtZero: true, ticks: { precision: 0, backdropColor: 'transparent' }, grid: { color: '#e2e8f0' }, angleLines: { color: '#e2e8f0' } } }
-                            }
-                        });
-                    } else {
-                        chart = new Chart(ctx, {
-                            type: chartType,
-                            data: { labels, datasets: [{ label: 'Количество', data: values, backgroundColor: colors, borderColor: isCircular ? '#fff' : 'transparent', borderWidth: isCircular ? 3 : 0, borderRadius: isCircular ? 0 : 10, borderSkipped: false, hoverOffset: isCircular ? 10 : 0 }] },
-                            options: {
-                                responsive: true, maintainAspectRatio: false,
-                                animation: { duration: 700, easing: 'easeOutQuart' },
-                                plugins: {
-                                    legend: { display: isCircular, position: 'bottom', labels: { padding: 12, font: { size: 12 }, usePointStyle: true, pointStyle: 'circle' } },
-                                    tooltip: {
-                                        backgroundColor: 'rgba(15,23,42,0.92)', padding: 10, cornerRadius: 10,
-                                        callbacks: { label: c => { const t = values.reduce((a, b) => a + b, 0) || 1; const v = isCircular ? c.parsed : c.parsed.y; return ` ${v} (${Math.round(v / t * 100)}%)`; } }
-                                    }
-                                },
-                                scales: isCircular ? {} : {
-                                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eef2f7' } },
-                                    x: { grid: { display: false } }
+                        }
+                    };
+
+                    if (isRadar) {
+                        baseOptions.scales = {
+                            r: {
+                                beginAtZero: true,
+                                ticks: { precision: 0, backdropColor: 'transparent', font: { size: 10 } },
+                                grid: { color: '#e2e8f0' },
+                                angleLines: { color: '#e2e8f0' },
+                                pointLabels: {
+                                    font: { size: 10, family: "'Segoe UI', Arial, sans-serif" },
+                                    color: '#475569'
                                 }
                             }
-                        });
+                        };
+                    } else if (isHBar) {
+                        baseOptions.indexAxis = 'y';
+                        baseOptions.scales = {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { precision: 0, font: { size: 10 } },
+                                grid: { color: '#eef2f7' }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 10, family: "'Segoe UI', Arial, sans-serif" },
+                                    color: '#334155',
+                                    autoSkip: false,
+                                    callback: function (val) {
+                                        const label = this.getLabelForValue(val);
+                                        return label.length > 16 ? label.slice(0, 15) + '…' : label;
+                                    }
+                                }
+                            }
+                        };
+                    } else if (!isCircular) {
+                        baseOptions.scales = {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0, font: { size: 10 } },
+                                grid: { color: '#eef2f7' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 10, family: "'Segoe UI', Arial, sans-serif" },
+                                    color: '#334155',
+                                    autoSkip: true,
+                                    maxRotation: 45,
+                                    minRotation: 0,
+                                    callback: function (val) {
+                                        const label = this.getLabelForValue(val);
+                                        return label.length > 14 ? label.slice(0, 13) + '…' : label;
+                                    }
+                                }
+                            }
+                        };
                     }
+
+                    const chart = new Chart(ctx, {
+                        type: isHBar ? 'bar' : chartType,
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Количество',
+                                data: values,
+                                backgroundColor: colors,
+                                borderColor: isCircular ? '#fff' : 'transparent',
+                                borderWidth: isCircular ? 3 : 0,
+                                borderRadius: isCircular ? 0 : 6,
+                                borderSkipped: false,
+                                hoverOffset: isCircular ? 8 : 0,
+                                maxBarThickness: 44
+                            }]
+                        },
+                        options: baseOptions
+                    });
                     state.charts.push(chart);
                 }
 
                 const ansList = block.querySelector('.answers-list');
-                const listTitle = document.createElement('div');
-                listTitle.className = 'muted';
-                listTitle.style.marginBottom = '6px';
-                listTitle.textContent = 'Ответы респондентов:';
-                ansList.appendChild(listTitle);
-                responses.forEach(r => {
+                responses.slice().reverse().forEach(r => {
                     const row = document.createElement('div');
                     row.className = 'answer-row';
                     const src = r.avatar || DEFAULT_AVATAR;
                     row.innerHTML = `
-        <div class="avatar"><img src="${src}" alt=""></div>
-        <div class="answer-content">
-          <div class="q">${escapeHtml(r.botName)}</div>
-          <div class="a">${escapeHtml(formatAnswer(r.answers[q.id]))}</div>
-        </div>
-      `;
+                        <div class="avatar"><img src="${src}" alt=""></div>
+                        <div class="answer-content">
+                            <div class="q">${escapeHtml(r.botName)}</div>
+                            <div class="a">${escapeHtml(formatAnswer(r.answers[q.id]))}</div>
+                        </div>
+                    `;
                     ansList.appendChild(row);
                 });
             });
