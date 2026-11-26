@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админ-панель анкетирования</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
+    color: #1f2937;
+    min-height: 100vh;
+    font-size: 15px;
+  }
+  header {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(79,70,229,0.3);
+    position: relative;
+  }
+  header h1 { margin: 0; font-size: 17px; }
+  #stats { font-size: 12px; opacity: 0.95; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .burger {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .burger:hover { background: rgba(255,255,255,0.25); box-shadow: none; transform: none; }
+  .menu {
+    position: absolute;
+    top: 62px;
+    right: 18px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(15,23,42,0.18);
+    padding: 6px;
+    min-width: 190px;
+    z-index: 100;
+    display: none;
+  }
+  .menu.open { display: block; }
+  .menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    color: #1f2937;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .menu button:hover { background: #eef2ff; color: #4338ca; box-shadow: none; transform: none; }
+  .container { max-width: 1240px; margin: 0 auto; padding: 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 24px rgba(15,23,42,0.08);
+    margin-bottom: 16px;
+    border: 1px solid #eef2f7;
+  }
+  .card h2 { margin-top: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  input, select, button, textarea {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 9px 11px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    outline: none;
+    background: #fff;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+  button {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,0.35); }
+  button.secondary { background: #64748b; }
+  button.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .row input[type="text"] { flex: 1; min-width: 140px; }
+  .question-block {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8fafc;
+  }
+  .question-block .row { margin-bottom: 6px; }
+  .option-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .option-row input { flex: 1; }
+  .list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 10px;
+    border-bottom: 1px solid #eef2f7;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .list-item:last-child { border-bottom: none; }
+  .badge {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .muted { color: #64748b; font-size: 12px; }
+  .chart-box { position: relative; height: 340px; }
+  .survey-select { min-width: 180px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #cbd5e1;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bot-row { display: flex; align-items: center; gap: 8px; }
+  .tab-hidden { display: none; }
+  .answer-edit {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 4px solid #6366f1;
+  }
+  .answer-edit .question-block { background: #fff; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .profile-preview {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: #cbd5e1; overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid #e2e8f0;
+  }
+  .profile-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-btn {
+    background: #eef2ff; color: #4338ca; font-size: 13px; padding: 8px 12px;
+    border-radius: 8px; cursor: pointer; border: 1px solid #c7d2fe; display: inline-block;
+  }
+  .photo-btn:hover { background: #e0e7ff; }
+  .result-block {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    background: #f8fafc;
+  }
+  .result-block h3 { margin: 0 0 8px; font-size: 15px; }
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 900px) { .result-grid { grid-template-columns: 1fr; } }
+  .answer-row {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 8px 0; border-bottom: 1px solid #eef2f7;
+  }
+  .answer-row:last-child { border-bottom: none; }
+  .answer-content { flex: 1; min-width: 0; }
+  .answer-content .q { font-size: 12px; color: #64748b; }
+  .answer-content .a { font-size: 14px; font-weight: 500; word-break: break-word; }
+  @media (max-width: 640px) {
+    .container { padding: 10px; }
+    .card { padding: 12px; border-radius: 12px; }
+    header h1 { font-size: 15px; }
+    input, select, button, textarea { font-size: 16px; }
+    .chart-box { height: 280px; }
+    .menu { right: 10px; top: 58px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚙️ Админ-панель</h1>
+  <div class="header-right">
+    <span id="stats"></span>
+    <button class="burger" id="burgerBtn" aria-label="Меню">☰</button>
+  </div>
+  <div class="menu" id="burgerMenu">
+    <button data-tab="surveys">Анкеты</button>
+    <button data-tab="results">Результаты</button>
+    <button data-tab="bots">Боты</button>
+    <button data-tab="responses">Ответы</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="tab-surveys">
+    <div class="grid">
+      <div class="card">
+        <h2>Создать анкету</h2>
+        <div class="row">
+          <input type="text" id="surveyTitle" placeholder="Название анкеты">
+        </div>
+        <div id="questionsEditor"></div>
+        <div class="row">
+          <button onclick="addQuestion()">+ Вопрос</button>
+          <button onclick="saveSurvey()">Сохранить</button>
+        </div>
+        <p class="muted">Настройте формулировку, варианты ответов и режим выбора.</p>
+      </div>
+      <div class="card">
+        <h2>Список анкет <span class="badge" id="surveyCount">0</span></h2>
+        <div id="surveyList"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="secondary" onclick="toggleSurveyList()" id="toggleSurveyBtn">Скрыть список</button>
+          <button class="secondary" onclick="copyPublicLinks()">Скопировать ссылки</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-bots" class="tab-hidden">
+    <div class="grid">
+      <div class="card">
+        <h2>Создать бота-респондента</h2>
+        <div class="profile-row" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+          <div class="profile-preview"><img id="botAvatarPreview" src="" alt="" style="display:none"></div>
+          <label class="photo-btn" for="botAvatarInput">Фото профиля</label>
+          <input type="file" id="botAvatarInput" accept="image/*" style="display:none" onchange="handleBotAvatar(event)">
+        </div>
+        <div class="row">
+          <input type="text" id="botName" placeholder="Имя бота">
+          <button onclick="createBot()">Создать</button>
+        </div>
+        <p class="muted">Боты дают развёрнутые ответы по теме вопроса.</p>
+        <div class="row">
+          <button onclick="runAllBots()">Запустить всех ботов по всем анкетам</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Список ботов <span class="badge" id="botCount">0</span></h2>
+        <div id="botList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-responses" class="tab-hidden">
+    <div class="card">
+      <h2>Редактирование ответов</h2>
+      <div class="row">
+        <select id="editSurveySelect" class="survey-select" onchange="renderResponsesEdit()"></select>
+      </div>
+      <div id="responsesEditBox"></div>
+    </div>
+  </div>
+
+  <div id="tab-results" class="tab-hidden">
+    <div class="card">
+      <h2>Общий результат</h2>
+      <div class="row">
+        <select id="resultSurveySelect" class="survey-select" onchange="renderResults()"></select>
+        <select id="chartType" onchange="renderResults()">
+          <option value="bar">Столбчатая</option>
+          <option value="horizontalBar">Горизонтальная</option>
+          <option value="doughnut">Кольцевая</option>
+          <option value="pie">Круговая</option>
+          <option value="polarArea">Полярная</option>
+          <option value="radar">Радар</option>
+        </select>
+      </div>
+      <div id="resultSummary" class="muted" style="margin-bottom:10px"></div>
+      <div id="resultsContainer"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA_KEY = 'survey_app_v5';
+const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#cbd5e1"/>
+  <circle cx="32" cy="24" r="12" fill="#94a3b8"/>
+  <path d="M8 60c0-13 10-22 24-22s24 9 24 22z" fill="#94a3b8"/>
+</svg>
+`)}`;
+
+const state = {
+  surveys: [],
+  bots: [],
+  responses: [],
+  questionCounter: 0,
+  charts: [],
+  editingOptions: {}
+};
+
+let pendingBotAvatar = '';
+let currentTab = 'surveys';
+
+function uid() { return Math.random().toString(36).slice(2, 10); }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(DATA_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      state.surveys = d.surveys || [];
+      state.bots = d.bots || [];
+      state.responses = d.responses || [];
+      return;
+    }
+  } catch (e) {}
+  state.surveys = []; state.bots = []; state.responses = [];
+}
+function saveData() {
+  try {
+    localStorage.setItem(DATA_KEY, JSON.stringify({
+      surveys: state.surveys,
+      bots: state.bots,
+      responses: state.responses
+    }));
+  } catch (e) {}
+}
+
+function updateStats() {
+  document.getElementById('stats').textContent =
+    `Анкет: ${state.surveys.length} | Ботов: ${state.bots.length} | Ответов: ${state.responses.length}`;
+  document.getElementById('surveyCount').textContent = state.surveys.length;
+  document.getElementById('botCount').textContent = state.bots.length;
+}
+
+function addQuestion() {
+  const id = 'q_' + (++state.questionCounter);
+  state.editingOptions[id] = { text: '', type: 'closed', multi: false, options: ['', ''] };
+  window.__qDraft = window.__qDraft || {};
+  window.__qDraft[id] = state.editingOptions[id];
+  renderQuestionsEditor();
+}
+
+function renderQuestionsEditor() {
+  const box = document.getElementById('questionsEditor');
+  const draft = window.__qDraft || {};
+  const ids = Object.keys(draft);
+  box.innerHTML = '';
+  ids.forEach((qid, idx) => {
+    const q = draft[qid];
+    const block = document.createElement('div');
+    block.className = 'question-block';
+    block.innerHTML = `
+      <div class="row">
+        <input type="text" placeholder="Вопрос ${idx + 1}" value="${escapeHtml(q.text)}" data-role="qtext">
+        <select data-role="qtype">
+          <option value="closed">С вариантами</option>
+          <option value="semi">Варианты + свой</option>
+          <option value="open">Текстовый</option>
+        </select>
+        <label class="muted" data-role="multiwrap"><input type="checkbox" data-role="qmulti"> несколько</label>
+        <button class="danger" data-role="delq">✕</button>
+      </div>
+      <div class="options"></div>
+    `;
+    const qtext = block.querySelector('[data-role="qtext"]');
+    const qtype = block.querySelector('[data-role="qtype"]');
+    const qmulti = block.querySelector('[data-role="qmulti"]');
+    const multiwrap = block.querySelector('[data-role="multiwrap"]');
+    qtext.value = q.text;
+    qtype.value = q.type;
+    qmulti.checked = q.multi;
+    qtext.oninput = () => { q.text = qtext.value; };
+    qtype.onchange = () => {
+      q.type = qtype.value;
+      if (q.type !== 'closed') { q.multi = false; qmulti.checked = false; }
+      renderQuestionsEditor();
+    };
+    qmulti.onchange = () => { q.multi = qmulti.checked; };
+    multiwrap.style.display = q.type === 'closed' ? '' : 'none';
+    block.querySelector('[data-role="delq"]').onclick = () => {
+      delete draft[qid];
+      renderQuestionsEditor();
+    };
+    const optBox = block.querySelector('.options');
+    if (q.type !== 'open') {
+      q.options.forEach((o, oi) => {
+        const orow = document.createElement('div');
+        orow.className = 'option-row';
+        orow.innerHTML = `
+          <input type="text" placeholder="Вариант ${oi + 1}" value="${escapeHtml(o)}">
+          <button class="secondary" data-role="delopt">✕</button>
+        `;
+        orow.querySelector('input').oninput = (e) => { q.options[oi] = e.target.value; };
+        orow.querySelector('[data-role="delopt"]').onclick = () => {
+          q.options.splice(oi, 1);
+          renderQuestionsEditor();
+        };
+        optBox.appendChild(orow);
+      });
+      const addBtn = document.createElement('button');
+      addBtn.textContent = '+ вариант';
+      addBtn.className = 'secondary';
+      addBtn.onclick = () => { q.options.push(''); renderQuestionsEditor(); };
+      optBox.appendChild(addBtn);
+    }
+    box.appendChild(block);
+  });
+}
+
+function saveSurvey() {
+  const title = document.getElementById('surveyTitle').value.trim();
+  if (!title) { alert('Введите название анкеты'); return; }
+  const draft = window.__qDraft || {};
+  const ids = Object.keys(draft);
+  if (!ids.length) { alert('Добавьте хотя бы один вопрос'); return; }
+  const questions = [];
+  for (const qid of ids) {
+    const q = draft[qid];
+    const text = (q.text || '').trim();
+    if (!text) { alert('Заполните текст всех вопросов'); return; }
+    let options = [];
+    if (q.type !== 'open') {
+      options = (q.options || []).map(o => o.trim()).filter(Boolean);
+      if (options.length < 2) { alert('Минимум 2 варианта: ' + text); return; }
+    }
+    questions.push({ id: qid, text, type: q.type, multi: !!q.multi, options });
+  }
+  state.surveys.push({ id: uid(), title, questions, createdAt: Date.now() });
+  window.__qDraft = {};
+  document.getElementById('surveyTitle').value = '';
+  renderQuestionsEditor();
+  renderSurveyList();
+  refreshSelects();
+  saveData();
+  updateStats();
+}
+
+let surveyListHidden = false;
+function toggleSurveyList() {
+  surveyListHidden = !surveyListHidden;
+  document.getElementById('surveyList').style.display = surveyListHidden ? 'none' : '';
+  document.getElementById('toggleSurveyBtn').textContent = surveyListHidden ? 'Показать список' : 'Скрыть список';
+}
+
+function renderSurveyList() {
+  const box = document.getElementById('surveyList');
+  if (!state.surveys.length) { box.innerHTML = '<p class="muted">Нет анкет</p>'; return; }
+  box.innerHTML = '';
+  state.surveys.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `
+      <div>
+        <strong>${escapeHtml(s.title)}</strong>
+        <div class="muted">Вопросов: ${s.questions.length} | Ответов: ${state.responses.filter(r => r.surveyId === s.id).length}</div>
+      </div>
+      <button class="danger" data-id="${s.id}">Удалить</button>
+    `;
+    div.querySelector('button').onclick = () => deleteSurvey(s.id);
+    box.appendChild(div);
+  });
+}
+
+function deleteSurvey(id) {
+  if (!confirm('Удалить анкету и все её ответы?')) return;
+  state.surveys = state.surveys.filter(s => s.id !== id);
+  state.responses = state.responses.filter(r => r.surveyId !== id);
+  renderSurveyList();
+  refreshSelects();
+  saveData();
+  updateStats();
+}
+
+function copyPublicLinks() {
+  if (!state.surveys.length) { alert('Нет анкет'); return; }
+  const base = window.location.href.replace(/[^/]*$/, '') + 'index.html';
+  const links = state.surveys.map(s => `${base}?survey=${s.id}`).join('\n');
+  navigator.clipboard.writeText(links).then(
+    () => alert('Ссылки скопированы:\n\n' + links),
+    () => prompt('Скопируйте ссылки:', links)
+  );
+}
+
+function handleBotAvatar(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { alert('Файл слишком большой (макс. 2 МБ)'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingBotAvatar = ev.target.result;
+    const img = document.getElementById('botAvatarPreview');
+    img.src = pendingBotAvatar;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function createBot() {
+  const name = document.getElementById('botName').value.trim();
+  if (!name) { alert('Введите имя бота'); return; }
+  state.bots.push({ id: uid(), name, avatar: pendingBotAvatar || '' });
+  document.getElementById('botName').value = '';
+  document.getElementById('botAvatarInput').value = '';
+  const prev = document.getElementById('botAvatarPreview');
+  prev.src = ''; prev.style.display = 'none';
+  pendingBotAvatar = '';
+  renderBotList();
+  refreshSelects();
+  saveData();
+  updateStats();
+}
+
+function renderBotList() {
+  const box = document.getElementById('botList');
+  if (!state.bots.length) { box.innerHTML = '<p class="muted">Нет ботов</p>'; return; }
+  box.innerHTML = '';
+  state.bots.forEach(b => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    const src = b.avatar || DEFAULT_AVATAR;
+    div.innerHTML = `
+      <div class="bot-row">
+        <div class="avatar"><img src="${src}" alt=""></div>
+        <strong>${escapeHtml(b.name)}</strong>
+      </div>
+      <button class="danger" data-id="${b.id}">Удалить</button>
+    `;
+    div.querySelector('button').onclick = () => deleteBot(b.id);
+    box.appendChild(div);
+  });
+}
+
+function deleteBot(id) {
+  state.bots = state.bots.filter(b => b.id !== id);
+  state.responses = state.responses.filter(r => r.botId !== id);
+  renderBotList();
+  refreshSelects();
+  saveData();
+  updateStats();
+}
+
+function smartOpenAnswer(questionText) {
+  const q = questionText.toLowerCase();
+  const isLike = /нрав|любите|хорошо|плюс|преимуществ|достоинств|положительн|предпочт/.test(q);
+  const isDislike = /не нрав|минус|недостат|проблем|жалоб|улучш|изменить|не устраивает/.test(q);
+  const isSuggest = /предлож|идея|рекоменд|совет|как улучшить|что добавить/.test(q);
+  const isExp = /опыт|сталкивались|пользовались|пробовали|случалось/.test(q);
+
+  const banks = {
+    like: [
+      'Больше всего нравится удобство и простота использования — всё интуитивно понятно.',
+      'Нравится скорость работы и то, что всё сделано по-человечески.',
+      'Ценю качество и внимание к деталям, чувствуется забота о пользователе.',
+      'Импонирует гибкость настроек и то, как легко всё адаптируется под задачи.',
+      'Радует понятный интерфейс и отсутствие лишних действий.',
+      'Отдельно отмечу продуманность мелочей и стабильность работы.',
+      'Нравится, что можно быстро разобраться без инструкции.',
+      'Подкупает аккуратный дизайн и логичная структура.',
+      'Хорошо, что есть подсказки и всё сделано для людей.',
+      'Ценю предсказуемость: знаешь, где что найти.',
+      'Нравится общая атмосфера продукта — спокойно и без суеты.',
+      'Радует, что функционал не перегружен лишним.',
+      'Импонирует скорость отклика и понятные сообщения.',
+      'Отмечу удобство навигации — не приходится блуждать.',
+      'Нравится, что всё работает как ожидаешь, без сюрпризов.'
+    ],
+    dislike: [
+      'Не нравится, что иногда приходится долго разбираться в мелочах.',
+      'Раздражает нестабильная работа и непонятные сообщения об ошибках.',
+      'Не хватает понятной инструкции, местами слишком запутанно.',
+      'Огорчает, что важные функции спрятаны слишком глубоко.',
+      'Не устраивает, что нет возможности быстро отменить действие.',
+      'Минус — медленная загрузка на слабом интернете.',
+      'Недостаток — неочевидные настройки по умолчанию.',
+      'Проблема в том, что ошибки описаны не по-человечески.',
+      'Не нравится перегруженность экранов лишними элементами.',
+      'Жалко, что нет тёмной темы и нормальной адаптации.',
+      'Смущает отсутствие быстрого поиска по разделам.',
+      'Не хватает сохранения черновиков — приходится начинать заново.',
+      'Раздражает, что после обновления сбиваются настройки.',
+      'Не устраивает, что нет уведомлений о важных изменениях.',
+      'Огорчает непоследовательность в оформлении кнопок.'
+    ],
+    suggest: [
+      'Предложил бы добавить подсказки для новых пользователей.',
+      'Хотелось бы видеть более наглядную статистику и отчёты.',
+      'Советую упростить навигацию и убрать лишние шаги.',
+      'Стоит добавить возможность сохранения черновиков.',
+      'Рекомендую сделать более заметной кнопку сохранения.',
+      'Идея: добавить быстрый поиск по всем разделам.',
+      'Предлагаю ввести онбординг с короткими шагами.',
+      'Можно добавить тёмную тему — многие оценят.',
+      'Совет: показывать понятные сообщения об ошибках.',
+      'Рекомендую добавить автосохранение ответов.',
+      'Идея — сделать экспорт в нескольких форматах сразу.',
+      'Предлагаю добавить фильтры в список ответов.',
+      'Стоит подумать над мобильным приложением.',
+      'Рекомендую добавить краткие видео-инструкции.',
+      'Идея: дать возможность настраивать панель под себя.'
+    ],
+    experience: [
+      'Сталкивался с подобным раньше, в целом опыт положительный.',
+      'Пользовался похожими системами, здесь всё сделано аккуратнее.',
+      'Опыт есть, и он показывает, что главное — стабильность.',
+      'Пробовал разные варианты, этот выглядит достойно.',
+      'Случалось работать с аналогами, тут есть свои плюсы.',
+      'По опыту скажу: важно, чтобы всё работало без сбоев.',
+      'Раньше пользовался другим сервисом, тут удобнее.',
+      'Опыт подсказывает, что простота важнее наворотов.',
+      'Пробовал — остался доволен результатом.',
+      'Сталкивался с похожей задачей, решение здесь адекватное.',
+      'Опыт небольшой, но впечатление сложилось хорошее.',
+      'Работал с этим раньше, заметил улучшения.',
+      'Пробовал в деле — справился без подсказок.',
+      'Опыт показывает: главное — понятный первый шаг.',
+      'Случалось тестировать похожее, здесь логика яснее.'
+    ],
+    generic: [
+      'В целом впечатление положительное, всё понятно.',
+      'Отвечаю по существу: всё устроено логично.',
+      'Скажу так — есть что улучшить, но основа хорошая.',
+      'Ответ простой: мне всё понятно и удобно.',
+      'Впечатления нормальные, без лишних сложностей.',
+      'Если коротко — пользоваться можно и приятно.',
+      'По сути вопроса: всё работает как надо.',
+      'Скажу честно: ожидал худшего, приятно удивлён.',
+      'Мнение сложилось положительное, есть мелкие нюансы.',
+      'В целом — достойно, есть куда расти.',
+      'Отвечу прямо: впечатление ровное, без нареканий.',
+      'Если по делу — всё понятно и предсказуемо.',
+      'Скажу так: первый опыт прошёл гладко.',
+      'По существу: всё соответствует ожиданиям.',
+      'В целом хорошо, детали можно докрутить.'
+    ]
+  };
+
+  let pool = banks.generic;
+  if (isLike && !isDislike) pool = banks.like;
+  else if (isDislike) pool = banks.dislike;
+  else if (isSuggest) pool = banks.suggest;
+  else if (isExp) pool = banks.experience;
+
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function generateAnswers(survey, bot) {
+  const answers = {};
+  survey.questions.forEach(q => {
+    if (q.type === 'open') {
+      answers[q.id] = smartOpenAnswer(q.text);
+    } else if (q.type === 'semi') {
+      const useOwn = Math.random() < 0.3;
+      if (useOwn) {
+        answers[q.id] = smartOpenAnswer(q.text);
+      } else if (q.multi) {
+        const count = 1 + Math.floor(Math.random() * Math.max(1, q.options.length - 1));
+        answers[q.id] = q.options.slice().sort(() => Math.random() - 0.5).slice(0, count);
+      } else {
+        answers[q.id] = q.options[Math.floor(Math.random() * q.options.length)];
+      }
+    } else {
+      if (q.multi) {
+        const count = 1 + Math.floor(Math.random() * Math.max(1, q.options.length - 1));
+        answers[q.id] = q.options.slice().sort(() => Math.random() - 0.5).slice(0, count);
+      } else {
+        answers[q.id] = q.options[Math.floor(Math.random() * q.options.length)];
+      }
+    }
+  });
+  return answers;
+}
+
+function runAllBots() {
+  if (!state.bots.length) { alert('Сначала создайте ботов'); return; }
+  if (!state.surveys.length) { alert('Сначала создайте анкеты'); return; }
+  state.bots.forEach(bot => {
+    state.surveys.forEach(survey => {
+      state.responses.push({
+        id: uid(),
+        surveyId: survey.id,
+        botId: bot.id,
+        botName: bot.name,
+        avatar: bot.avatar || '',
+        source: 'bot',
+        answers: generateAnswers(survey, bot),
+        createdAt: Date.now()
+      });
+    });
+  });
+  saveData();
+  updateStats();
+  renderSurveyList();
+  renderResponsesEdit();
+  renderResults();
+  alert('Боты прошли все анкеты!');
+}
+
+function refreshSelects() {
+  const editSel = document.getElementById('editSurveySelect');
+  const resSel = document.getElementById('resultSurveySelect');
+  const opts = state.surveys.map(s => `<option value="${s.id}">${escapeHtml(s.title)}</option>`).join('');
+  editSel.innerHTML = opts;
+  resSel.innerHTML = opts;
+  renderResponsesEdit();
+  renderResults();
+}
+
+function renderResponsesEdit() {
+  const sId = document.getElementById('editSurveySelect').value;
+  const box = document.getElementById('responsesEditBox');
+  const survey = state.surveys.find(s => s.id === sId);
+  if (!survey) { box.innerHTML = '<p class="muted">Выберите анкету</p>'; return; }
+  const responses = state.responses.filter(r => r.surveyId === sId);
+  if (!responses.length) { box.innerHTML = '<p class="muted">Нет ответов</p>'; return; }
+  box.innerHTML = '';
+  responses.slice().reverse().forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'answer-edit';
+    const date = new Date(r.createdAt).toLocaleString();
+    const src = r.avatar || DEFAULT_AVATAR;
+    div.innerHTML = `
+      <div class="flex-between" style="margin-bottom:8px">
+        <div class="bot-row">
+          <div class="avatar"><img src="${src}" alt=""></div>
+          <div>
+            <strong>${escapeHtml(r.botName)}</strong>
+            <div class="muted">${date}</div>
+          </div>
+        </div>
+        <div class="row" style="margin:0">
+          <button class="secondary" data-role="save" data-id="${r.id}">Сохранить</button>
+          <button class="danger" data-role="del" data-id="${r.id}">Удалить</button>
+        </div>
+      </div>
+      <div class="edit-questions"></div>
+    `;
+    const qBox = div.querySelector('.edit-questions');
+    survey.questions.forEach((q, idx) => {
+      const block = document.createElement('div');
+      block.className = 'question-block';
+      const cur = r.answers[q.id];
+      let inner = `<div><strong>${idx + 1}. ${escapeHtml(q.text)}</strong></div>`;
+      if (q.type === 'open') {
+        inner += `<input type="text" data-qid="${q.id}" data-type="open" value="${escapeHtml(cur || '')}" style="width:100%;margin-top:6px">`;
+      } else if (q.type === 'semi') {
+        const curArr = Array.isArray(cur) ? cur : (cur ? [cur] : []);
+        if (q.multi) {
+          q.options.forEach(o => {
+            const checked = curArr.includes(o) ? 'checked' : '';
+            inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-multi" ${checked}> ${escapeHtml(o)}</label>`;
+          });
+        } else {
+          q.options.forEach(o => {
+            const checked = curArr.includes(o) ? 'checked' : '';
+            inner += `<label><input type="radio" name="edit_${r.id}_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-single" ${checked}> ${escapeHtml(o)}</label>`;
+          });
+        }
+        const ownVal = curArr.find(v => !q.options.includes(v)) || '';
+        inner += `<input type="text" data-qid="${q.id}" data-type="semi-own" value="${escapeHtml(ownVal)}" placeholder="Свой вариант" style="width:100%;margin-top:6px">`;
+      } else {
+        const curArr = Array.isArray(cur) ? cur : (cur ? [cur] : []);
+        if (q.multi) {
+          q.options.forEach(o => {
+            const checked = curArr.includes(o) ? 'checked' : '';
+            inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-multi" ${checked}> ${escapeHtml(o)}</label>`;
+          });
+        } else {
+          q.options.forEach(o => {
+            const checked = curArr.includes(o) ? 'checked' : '';
+            inner += `<label><input type="radio" name="edit_${r.id}_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-single" ${checked}> ${escapeHtml(o)}</label>`;
+          });
+        }
+      }
+      block.innerHTML = inner;
+      qBox.appendChild(block);
+    });
+    div.querySelector('[data-role="save"]').onclick = () => saveEditedResponse(r.id, survey, div);
+    div.querySelector('[data-role="del"]').onclick = () => deleteResponse(r.id);
+    box.appendChild(div);
+  });
+}
+
+function collectAnswersFromEdit(survey, container) {
+  const answers = {};
+  survey.questions.forEach(q => {
+    if (q.type === 'open') {
+      const el = container.querySelector(`input[data-qid="${q.id}"][data-type="open"]`);
+      answers[q.id] = el ? el.value.trim() : '';
+    } else if (q.type === 'semi') {
+      const own = container.querySelector(`input[data-qid="${q.id}"][data-type="semi-own"]`);
+      const ownVal = own ? own.value.trim() : '';
+      if (q.multi) {
+        const els = container.querySelectorAll(`input[data-qid="${q.id}"][data-type="semi-multi"]:checked`);
+        const arr = Array.from(els).map(e => e.value);
+        if (ownVal) arr.push(ownVal);
+        answers[q.id] = arr;
+      } else {
+        const el = container.querySelector(`input[data-qid="${q.id}"][data-type="semi-single"]:checked`);
+        answers[q.id] = ownVal || (el ? el.value : '');
+      }
+    } else {
+      if (q.multi) {
+        const els = container.querySelectorAll(`input[data-qid="${q.id}"][data-type="closed-multi"]:checked`);
+        answers[q.id] = Array.from(els).map(e => e.value);
+      } else {
+        const el = container.querySelector(`input[data-qid="${q.id}"][data-type="closed-single"]:checked`);
+        answers[q.id] = el ? el.value : '';
+      }
+    }
+  });
+  return answers;
+}
+
+function saveEditedResponse(id, survey, container) {
+  const r = state.responses.find(x => x.id === id);
+  if (!r) return;
+  r.answers = collectAnswersFromEdit(survey, container);
+  saveData();
+  renderResults();
+  alert('Ответ сохранён');
+}
+
+function deleteResponse(id) {
+  if (!confirm('Удалить ответ?')) return;
+  state.responses = state.responses.filter(r => r.id !== id);
+  saveData();
+  updateStats();
+  renderSurveyList();
+  renderResponsesEdit();
+  renderResults();
+}
+
+function smartColors(labels, values) {
+  const palettes = [
+    ['#6366f1','#818cf8','#a5b4fc','#c7d2fe','#e0e7ff'],
+    ['#8b5cf6','#a78bfa','#c4b5fd','#ddd6fe','#ede9fe'],
+    ['#ec4899','#f472b6','#f9a8d4','#fbcfe8','#fce7f3'],
+    ['#10b981','#34d399','#6ee7b7','#a7f3d0','#d1fae5'],
+    ['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fef3c7'],
+    ['#06b6d4','#22d3ee','#67e8f9','#a5f3fc','#cffafe']
+  ];
+  const total = values.reduce((a, b) => a + b, 0) || 1;
+  const max = Math.max(...values, 1);
+  return labels.map((_, i) => {
+    const ratio = (values[i] || 0) / total;
+    const intensity = Math.max(0.35, Math.min(1, (values[i] || 0) / max));
+    const palette = palettes[i % palettes.length];
+    const idx = Math.min(palette.length - 1, Math.floor((1 - intensity) * (palette.length - 1)));
+    if (values[i] === max) return palette[0];
+    return palette[Math.min(palette.length - 1, Math.max(1, Math.floor(ratio * 4)))] || palette[idx];
+  });
+}
+
+function formatAnswer(a) {
+  if (Array.isArray(a)) return a.join(', ');
+  return a || '—';
+}
+
+function renderResults() {
+  const sId = document.getElementById('resultSurveySelect').value;
+  const survey = state.surveys.find(s => s.id === sId);
+  const summary = document.getElementById('resultSummary');
+  const container = document.getElementById('resultsContainer');
+  state.charts.forEach(c => c.destroy());
+  state.charts = [];
+
+  if (!survey) {
+    summary.textContent = '';
+    container.innerHTML = '<p class="muted">Выберите анкету</p>';
+    return;
+  }
+
+  const responses = state.responses.filter(r => r.surveyId === sId);
+  summary.innerHTML = `Всего ответов: <strong>${responses.length}</strong>`;
+
+  if (!responses.length) {
+    container.innerHTML = '<p class="muted">Нет ответов по этой анкете</p>';
+    return;
+  }
+
+  container.innerHTML = '';
+  const chartType = document.getElementById('chartType').value;
+  const isCircular = chartType === 'doughnut' || chartType === 'pie' || chartType === 'polarArea';
+
+  survey.questions.forEach((q, idx) => {
+    const block = document.createElement('div');
+    block.className = 'result-block';
+    block.innerHTML = `<h3>${idx + 1}. ${escapeHtml(q.text)}</h3>
+      <div class="result-grid">
+        <div>
+          <div class="chart-box" style="height:260px"><canvas></canvas></div>
+        </div>
+        <div>
+          <div class="answers-list"></div>
+        </div>
+      </div>`;
+    container.appendChild(block);
+
+    const counts = {};
+    responses.forEach(r => {
+      const a = r.answers[q.id];
+      if (Array.isArray(a)) a.forEach(v => counts[v] = (counts[v] || 0) + 1);
+      else if (a) counts[a] = (counts[a] || 0) + 1;
+    });
+
+    let labels, values;
+    if (q.type === 'open' || q.type === 'semi') {
+      const arr = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      labels = arr.map(x => x[0]);
+      values = arr.map(x => x[1]);
+    } else {
+      labels = q.options.slice();
+      values = labels.map(l => counts[l] || 0);
+    }
+
+    const canvas = block.querySelector('canvas');
+    if (!labels.length || values.every(v => v === 0)) {
+      block.querySelector('.chart-box').innerHTML = '<p class="muted">Нет данных для диаграммы</p>';
+    } else {
+      const ctx = canvas.getContext('2d');
+      const colors = smartColors(labels, values);
+      let chart;
+      if (chartType === 'horizontalBar') {
+        chart = new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets: [{ label: 'Количество', data: values, backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
+          options: {
+            indexAxis: 'y',
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 700, easing: 'easeOutQuart' },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(15,23,42,0.92)', padding: 10, cornerRadius: 10,
+                callbacks: { label: c => { const t = values.reduce((a,b)=>a+b,0)||1; return ` ${c.parsed.x} (${Math.round(c.parsed.x/t*100)}%)`; } }
+              }
+            },
+            scales: {
+              x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eef2f7' } },
+              y: { grid: { display: false } }
+            }
+          }
+        });
+      } else if (chartType === 'radar') {
+        chart = new Chart(ctx, {
+          type: 'radar',
+          data: { labels, datasets: [{ label: 'Количество', data: values, backgroundColor: 'rgba(99,102,241,0.25)', borderColor: '#6366f1', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#fff', pointRadius: 4 }] },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 700, easing: 'easeOutQuart' },
+            plugins: { legend: { display: false } },
+            scales: { r: { beginAtZero: true, ticks: { precision: 0, backdropColor: 'transparent' }, grid: { color: '#e2e8f0' }, angleLines: { color: '#e2e8f0' } } }
+          }
+        });
+      } else {
+        chart = new Chart(ctx, {
+          type: chartType,
+          data: { labels, datasets: [{ label: 'Количество', data: values, backgroundColor: colors, borderColor: isCircular ? '#fff' : 'transparent', borderWidth: isCircular ? 3 : 0, borderRadius: isCircular ? 0 : 10, borderSkipped: false, hoverOffset: isCircular ? 10 : 0 }] },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 700, easing: 'easeOutQuart' },
+            plugins: {
+              legend: { display: isCircular, position: 'bottom', labels: { padding: 12, font: { size: 12 }, usePointStyle: true, pointStyle: 'circle' } },
+              tooltip: {
+                backgroundColor: 'rgba(15,23,42,0.92)', padding: 10, cornerRadius: 10,
+                callbacks: { label: c => { const t = values.reduce((a,b)=>a+b,0)||1; const v = isCircular ? c.parsed : c.parsed.y; return ` ${v} (${Math.round(v/t*100)}%)`; } }
+              }
+            },
+            scales: isCircular ? {} : {
+              y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#eef2f7' } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+      state.charts.push(chart);
+    }
+
+    const ansList = block.querySelector('.answers-list');
+    const listTitle = document.createElement('div');
+    listTitle.className = 'muted';
+    listTitle.style.marginBottom = '6px';
+    listTitle.textContent = 'Ответы респондентов:';
+    ansList.appendChild(listTitle);
+    responses.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'answer-row';
+      const src = r.avatar || DEFAULT_AVATAR;
+      row.innerHTML = `
+        <div class="avatar"><img src="${src}" alt=""></div>
+        <div class="answer-content">
+          <div class="q">${escapeHtml(r.botName)}</div>
+          <div class="a">${escapeHtml(formatAnswer(r.answers[q.id]))}</div>
+        </div>
+      `;
+      ansList.appendChild(row);
+    });
+  });
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  ['surveys','bots','responses','results'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    el.style.display = t === tab ? '' : 'none';
+    el.classList.toggle('tab-hidden', t !== tab);
+  });
+  document.querySelectorAll('.menu button').forEach(b => {
+    b.style.background = b.dataset.tab === tab ? '#eef2ff' : '';
+    b.style.color = b.dataset.tab === tab ? '#4338ca' : '';
+  });
+  if (tab === 'results') renderResults();
+  if (tab === 'responses') renderResponsesEdit();
+}
+
+const burgerBtn = document.getElementById('burgerBtn');
+const burgerMenu = document.getElementById('burgerMenu');
+burgerBtn.onclick = (e) => {
+  e.stopPropagation();
+  burgerMenu.classList.toggle('open');
+};
+document.addEventListener('click', (e) => {
+  if (!burgerMenu.contains(e.target) && e.target !== burgerBtn) {
+    burgerMenu.classList.remove('open');
+  }
+});
+document.querySelectorAll('.menu button').forEach(b => {
+  b.onclick = () => {
+    switchTab(b.dataset.tab);
+    burgerMenu.classList.remove('open');
+  };
+});
+
+loadData();
+addQuestion();
+renderQuestionsEditor();
+renderSurveyList();
+renderBotList();
+refreshSelects();
+updateStats();
+switchTab('surveys');
+</script>
+</body>
+</html>
