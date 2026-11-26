@@ -187,6 +187,10 @@
             background: linear-gradient(135deg, #ef4444, #dc2626);
         }
 
+        button.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
         .row {
             display: flex;
             gap: 8px;
@@ -278,6 +282,8 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex: 1;
+            min-width: 0;
         }
 
         .tab-hidden {
@@ -583,6 +589,128 @@
             padding: 10px;
         }
 
+        .bot-select-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eef2f7;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .bot-select-item:hover {
+            background: #f8fafc;
+        }
+
+        .bot-select-item:last-child {
+            border-bottom: none;
+        }
+
+        .bot-select-item.selected {
+            background: #eef2ff;
+        }
+
+        .bot-check {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            border: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: #fff;
+            transition: all 0.15s;
+        }
+
+        .bot-select-item.selected .bot-check {
+            background: #4f46e5;
+            border-color: #4f46e5;
+        }
+
+        .bot-select-item.selected .bot-check::after {
+            content: '✓';
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .bot-send-bar {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff;
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+        }
+
+        .bot-send-bar .title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bot-send-bar select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border: none;
+        }
+
+        .bot-send-bar .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .bot-send-bar button {
+            flex: 1;
+            min-width: 140px;
+            background: #fff;
+            color: #4338ca;
+            font-weight: 600;
+            padding: 10px 14px;
+        }
+
+        .bot-send-bar button:hover {
+            background: #eef2ff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .bot-send-bar button.secondary-light {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+        }
+
+        .bot-send-bar button.secondary-light:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        .bot-toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .bot-toolbar .count-badge {
+            background: #4f46e5;
+            color: #fff;
+            padding: 2px 9px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .bot-toolbar button {
+            font-size: 12px;
+            padding: 6px 10px;
+        }
+
         @keyframes pulse {
             0% {
                 box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
@@ -707,7 +835,20 @@
                 </div>
                 <div class="card">
                     <h2>Список ботов <span class="badge" id="botCount">0</span></h2>
+                    <div class="bot-toolbar">
+                        <span class="count-badge" id="selectedBotsCount">0 выбрано</span>
+                        <button class="secondary" onclick="selectAllBots()">Выбрать всех</button>
+                        <button class="secondary" onclick="clearBotSelection()">Снять выбор</button>
+                    </div>
                     <div id="botList"></div>
+                    <div class="bot-send-bar" id="botSendBar" style="display:none">
+                        <div class="title">Отправить выбранных ботов в анкету</div>
+                        <select id="botTargetSurvey"></select>
+                        <div class="btn-row">
+                            <button onclick="sendSelectedBotsToSurvey()">Отправить выбранных</button>
+                            <button class="secondary-light" onclick="clearBotSelection()">Снять выбор</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -765,7 +906,8 @@
             responses: [],
             questionCounter: 0,
             charts: [],
-            editingOptions: {}
+            editingOptions: {},
+            selectedBotIds: new Set()
         };
 
         let pendingBotAvatar = '';
@@ -812,6 +954,7 @@
         function updateStats() {
             document.getElementById('surveyCount').textContent = state.surveys.length;
             document.getElementById('botCount').textContent = state.bots.length;
+            updateSelectedBotsUI();
         }
 
         function addQuestion() {
@@ -998,29 +1141,73 @@
             updateStats();
         }
 
+        function toggleBotSelection(id) {
+            if (state.selectedBotIds.has(id)) {
+                state.selectedBotIds.delete(id);
+            } else {
+                state.selectedBotIds.add(id);
+            }
+            renderBotList();
+            updateSelectedBotsUI();
+        }
+
+        function selectAllBots() {
+            state.bots.forEach(b => state.selectedBotIds.add(b.id));
+            renderBotList();
+            updateSelectedBotsUI();
+        }
+
+        function clearBotSelection() {
+            state.selectedBotIds.clear();
+            renderBotList();
+            updateSelectedBotsUI();
+        }
+
+        function updateSelectedBotsUI() {
+            const count = state.selectedBotIds.size;
+            const badge = document.getElementById('selectedBotsCount');
+            const bar = document.getElementById('botSendBar');
+            if (badge) badge.textContent = `${count} выбрано`;
+            if (bar) bar.style.display = count > 0 ? 'block' : 'none';
+
+            const targetSel = document.getElementById('botTargetSurvey');
+            if (targetSel) {
+                const curVal = targetSel.value;
+                targetSel.innerHTML = state.surveys.map(s => `<option value="${s.id}">${escapeHtml(s.title)}</option>`).join('');
+                if (curVal && state.surveys.some(s => s.id === curVal)) {
+                    targetSel.value = curVal;
+                }
+            }
+        }
+
         function renderBotList() {
             const box = document.getElementById('botList');
-            if (!state.bots.length) { box.innerHTML = '<p class="muted">Нет ботов</p>'; return; }
+            if (!state.bots.length) { box.innerHTML = '<p class="muted">Нет ботов</p>'; updateSelectedBotsUI(); return; }
             box.innerHTML = '';
             state.bots.forEach(b => {
-                const div = document.createElement('div');
-                div.className = 'list-item';
+                const selected = state.selectedBotIds.has(b.id);
                 const src = b.avatar || DEFAULT_AVATAR;
+                const div = document.createElement('div');
+                div.className = 'bot-select-item' + (selected ? ' selected' : '');
                 div.innerHTML = `
-      <div class="bot-row">
-        <div class="avatar"><img src="${src}" alt=""></div>
-        <strong>${escapeHtml(b.name)}</strong>
-      </div>
-      <button class="danger" data-id="${b.id}">Удалить</button>
-    `;
-                div.querySelector('button').onclick = () => deleteBot(b.id);
+                    <div class="bot-check"></div>
+                    <div class="avatar"><img src="${src}" alt=""></div>
+                    <strong style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(b.name)}</strong>
+                    <button class="danger" data-id="${b.id}" style="padding:5px 10px;font-size:12px;flex-shrink:0">Удалить</button>
+                `;
+                div.querySelector('.bot-check').onclick = (e) => { e.stopPropagation(); toggleBotSelection(b.id); };
+                div.querySelector('.avatar').onclick = () => toggleBotSelection(b.id);
+                div.querySelector('strong').onclick = () => toggleBotSelection(b.id);
+                div.querySelector('button').onclick = (e) => { e.stopPropagation(); deleteBot(b.id); };
                 box.appendChild(div);
             });
+            updateSelectedBotsUI();
         }
 
         function deleteBot(id) {
             state.bots = state.bots.filter(b => b.id !== id);
             state.responses = state.responses.filter(r => r.botId !== id);
+            state.selectedBotIds.delete(id);
             renderBotList();
             refreshSelects();
             saveData();
@@ -1183,12 +1370,40 @@
             alert('Боты прошли все анкеты!');
         }
 
+        function sendSelectedBotsToSurvey() {
+            if (!state.selectedBotIds.size) { alert('Выберите хотя бы одного бота'); return; }
+            const surveyId = document.getElementById('botTargetSurvey').value;
+            const survey = state.surveys.find(s => s.id === surveyId);
+            if (!survey) { alert('Выберите анкету'); return; }
+            const bots = state.bots.filter(b => state.selectedBotIds.has(b.id));
+            if (!bots.length) { alert('Выбранные боты не найдены'); return; }
+            bots.forEach(bot => {
+                state.responses.push({
+                    id: uid(),
+                    surveyId: survey.id,
+                    botId: bot.id,
+                    botName: bot.name,
+                    avatar: bot.avatar || '',
+                    source: 'bot',
+                    answers: generateAnswers(survey, bot),
+                    createdAt: Date.now()
+                });
+            });
+            saveData();
+            updateStats();
+            renderSurveyList();
+            renderResponsesEdit();
+            renderResults();
+            alert(`Отправлено ботов: ${bots.length} → анкета «${survey.title}»`);
+        }
+
         function refreshSelects() {
             const editSel = document.getElementById('editSurveySelect');
             const resSel = document.getElementById('resultSurveySelect');
             const opts = state.surveys.map(s => `<option value="${s.id}">${escapeHtml(s.title)}</option>`).join('');
             editSel.innerHTML = opts;
             resSel.innerHTML = opts;
+            updateSelectedBotsUI();
             renderResponsesEdit();
             renderResults();
         }
@@ -1585,6 +1800,10 @@
             });
             if (tab === 'results') renderResults();
             if (tab === 'responses') renderResponsesEdit();
+            if (tab === 'bots') {
+                renderBotList();
+                updateSelectedBotsUI();
+            }
         }
 
         const burgerBtn = document.getElementById('burgerBtn');
