@@ -733,6 +733,7 @@
             refreshSelects();
             saveData();
             updateStats();
+            alert('Анкета создана и сразу доступна на публичной странице.');
         }
 
         let surveyListHidden = false;
@@ -1336,31 +1337,30 @@
             };
         });
 
-        window.addEventListener('storage', (e) => {
-            if (e.key === DATA_KEY) {
-                loadData();
+        function syncFromStorage() {
+            const before = JSON.stringify({ s: state.surveys, b: state.bots, r: state.responses });
+            loadData();
+            const after = JSON.stringify({ s: state.surveys, b: state.bots, r: state.responses });
+            if (before !== after) {
                 renderSurveyList();
                 renderBotList();
                 refreshSelects();
                 updateStats();
             }
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === DATA_KEY) syncFromStorage();
         });
 
         if (channel) {
             channel.onmessage = (e) => {
-                if (e.data && e.data.type === 'update') {
-                    const before = JSON.stringify({ s: state.surveys, b: state.bots, r: state.responses });
-                    loadData();
-                    const after = JSON.stringify({ s: state.surveys, b: state.bots, r: state.responses });
-                    if (before !== after) {
-                        renderSurveyList();
-                        renderBotList();
-                        refreshSelects();
-                        updateStats();
-                    }
-                }
+                if (e.data && e.data.type === 'update') syncFromStorage();
             };
         }
+
+        setInterval(syncFromStorage, 1500);
+        window.addEventListener('focus', syncFromStorage);
 
         loadData();
         addQuestion();
