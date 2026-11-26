@@ -1,2 +1,2 @@
-# anketa
-hyu hyui
+# Анкета
+
