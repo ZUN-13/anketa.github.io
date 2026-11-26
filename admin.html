@@ -483,7 +483,6 @@
                         <button onclick="addQuestion()">Добавить вопрос</button>
                         <button onclick="saveSurvey()">Сохранить</button>
                     </div>
-                    <p class="muted">Изменения сразу применяются к публичной анкете.</p>
                 </div>
                 <div class="card">
                     <h2>Список анкет <span class="badge" id="surveyCount">0</span></h2>
@@ -617,8 +616,6 @@
         }
 
         function updateStats() {
-            document.getElementById('stats').textContent =
-                `Анкет: ${state.surveys.length} | Ботов: ${state.bots.length} | Ответов: ${state.responses.length}`;
             document.getElementById('surveyCount').textContent = state.surveys.length;
             document.getElementById('botCount').textContent = state.bots.length;
         }
