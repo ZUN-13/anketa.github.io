@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ-панель анкетирования</title>
+    <title>Администрация</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -407,13 +407,6 @@
             border-radius: 10px;
         }
 
-        .live-badge span {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #4ade80;
-            animation: pulse 1.8s infinite;
-        }
 
         @keyframes pulse {
             0% {
@@ -464,9 +457,8 @@
 
 <body>
     <header>
-        <h1>⚙️ Админ-панель</h1>
+        <h1>Административный панель</h1>
         <div class="header-right">
-            <span class="live-badge"><span></span>синхронизация</span>
             <span id="stats"></span>
             <button class="burger" id="burgerBtn" aria-label="Меню">☰</button>
         </div>
@@ -488,7 +480,7 @@
                     </div>
                     <div id="questionsEditor"></div>
                     <div class="row">
-                        <button onclick="addQuestion()">+ Вопрос</button>
+                        <button onclick="addQuestion()">Добавить вопрос</button>
                         <button onclick="saveSurvey()">Сохранить</button>
                     </div>
                     <p class="muted">Изменения сразу применяются к публичной анкете.</p>
@@ -499,7 +491,6 @@
                     <div class="row" style="margin-top:10px">
                         <button class="secondary" onclick="toggleSurveyList()" id="toggleSurveyBtn">Скрыть
                             список</button>
-                        <button class="secondary" onclick="copyPublicLinks()">Скопировать ссылки</button>
                         <button class="secondary" onclick="openPublicPage()">Открыть публичную</button>
                     </div>
                 </div>
