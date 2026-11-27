@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Admin — Идентификация устройств</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #e2e8f0; min-height: 100vh; font-size: 15px; }
+  header { background: linear-gradient(135deg, #0f172a, #312e81); color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border-bottom: 1px solid #334155; }
+  header h1 { margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+  header .lock { background: #dc2626; padding: 2px 9px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+  .container { max-width: 1240px; margin: 0 auto; padding: 16px; }
+  .card { background: #1e293b; border-radius: 14px; padding: 18px; margin-bottom: 16px; border: 1px solid #334155; box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
+  .card h2 { margin-top: 0; font-size: 16px; color: #a5b4fc; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card p.hint { font-size: 12px; color: #94a3b8; margin: 0 0 12px; }
+  input, select, button { font-family: inherit; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #475569; outline: none; background: #0f172a; color: #e2e8f0; }
+  input:focus, select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.25); }
+  button { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; border: none; cursor: pointer; font-weight: 500; transition: transform 0.15s; }
+  button:hover { transform: translateY(-1px); }
+  button.secondary { background: #475569; }
+  button.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .row input { flex: 1; min-width: 160px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat-box { background: linear-gradient(135deg, #312e81, #4338ca); border-radius: 12px; padding: 14px 16px; border: 1px solid #4f46e5; }
+  .stat-box .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #c7d2fe; font-weight: 700; margin-bottom: 4px; }
+  .stat-box .val { font-size: 24px; font-weight: 800; color: #fff; }
+  .user-card { background: #0f172a; border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; border-left: 4px solid #6366f1; }
+  .user-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .user-av { width: 44px; height: 44px; border-radius: 50%; background: #334155; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .user-av img { width: 100%; height: 100%; object-fit: cover; }
+  .user-info { flex: 1; min-width: 0; }
+  .user-info .name { font-weight: 700; color: #f1f5f9; font-size: 15px; }
+  .user-info .email { font-size: 12px; color: #94a3b8; }
+  .user-id-badge { font-family: monospace; font-size: 11px; background: #1e293b; color: #a5b4fc; padding: 3px 8px; border-radius: 6px; border: 1px solid #3730a3; }
+  .device-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 8px; }
+  .device-item { background: #1e293b; border-radius: 8px; padding: 8px 10px; border: 1px solid #334155; }
+  .device-item .k { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 2px; }
+  .device-item .v { font-size: 12px; color: #cbd5e1; word-break: break-word; }
+  .device-item.full { grid-column: 1 / -1; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filters input, .filters select { flex: 1; min-width: 140px; }
+  .empty { text-align: center; padding: 30px 10px; color: #64748b; }
+  .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: radial-gradient(circle at top, #312e81 0%, #0f172a 70%); }
+  .auth-card { background: #1e293b; border-radius: 16px; padding: 26px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); border: 1px solid #334155; }
+  .auth-card h1 { margin: 0 0 4px; font-size: 22px; color: #a5b4fc; text-align: center; }
+  .auth-card p { margin: 0 0 18px; font-size: 13px; color: #94a3b8; text-align: center; }
+  .auth-card input { width: 100%; margin-bottom: 10px; padding: 12px; }
+  .auth-card button { width: 100%; padding: 12px; font-size: 15px; }
+  .auth-error { background: #7f1d1d; color: #fecaca; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 10px; display: none; }
+  .auth-error.show { display: block; }
+  .toolbar-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .toolbar-top .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  @media (max-width: 640px) {
+    .container { padding: 10px; }
+    .card { padding: 14px; }
+    header h1 { font-size: 14px; }
+    input, select, button { font-size: 16px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <h1>🛡️ Super Admin</h1>
+    <p>Глубокая админ-панель идентификации устройств</p>
+    <div id="authError" class="auth-error"></div>
+    <input type="text" id="saLogin" placeholder="Логин">
+    <input type="password" id="saPassword" placeholder="Пароль">
+    <button onclick="saLogin()">Войти</button>
+    <p style="margin-top:14px;font-size:11px;color:#64748b">По умолчанию: <code>root</code> / <code>root123</code></p>
+  </div>
+</div>
+
+<div id="appScreen" style="display:none">
+  <header>
+    <h1>🛡️ Super Admin <span class="lock">ROOT</span></h1>
+    <button class="danger" onclick="saLogout()">Выйти</button>
+  </header>
+  <div class="container">
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div class="card">
+      <div class="toolbar-top">
+        <h2 style="margin:0">👥 Зарегистрированные пользователи и их устройства</h2>
+        <div class="actions">
+          <button class="secondary" onclick="refreshData()">Обновить</button>
+        </div>
+      </div>
+      <p class="hint">Здесь отображаются все пользователи, зарегистрировавшиеся в админ-панели, с полной идентификацией их устройств (User-Agent, платформа, экран, часовой пояс, количество ядер, поддержка touch и уникальный Device ID).</p>
+      <div class="filters">
+        <input type="text" id="filterText" placeholder="Поиск по имени, email или device ID" oninput="renderUsers()">
+        <select id="filterSort" onchange="renderUsers()">
+          <option value="new">Сначала новые</option>
+          <option value="old">Сначала старые</option>
+          <option value="name">По имени</option>
+        </select>
+      </div>
+      <div id="usersBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>📱 Уникальные устройства</h2>
+      <p class="hint">Сгруппировано по Device ID. Если на одном устройстве зарегистрировано несколько аккаунтов — они будут видны здесь.</p>
+      <div id="devicesBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Сводка по системе</h2>
+      <div id="systemSummary"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA_KEY = 'survey_app_v6';
+const SA_SESSION = 'survey_superadmin_session_v6';
+const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#475569"/>
+  <circle cx="32" cy="24" r="12" fill="#94a3b8"/>
+  <path d="M8 60c0-13 10-22 24-22s24 9 24 22z" fill="#94a3b8"/>
+</svg>
+`)}`;
+
+let currentUsers = [];
+let currentSurveys = [];
+let currentBots = [];
+let currentResponses = [];
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function loadAll() {
+  try {
+    const raw = localStorage.getItem(DATA_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      currentUsers = d.users || [];
+      currentSurveys = d.surveys || [];
+      currentBots = d.bots || [];
+      currentResponses = d.responses || [];
+      return;
+    }
+  } catch (e) {}
+  currentUsers = []; currentSurveys = []; currentBots = []; currentResponses = [];
+}
+
+function refreshData() {
+  loadAll();
+  renderStats();
+  renderUsers();
+  renderDevices();
+  renderSystemSummary();
+}
+
+function saLogin() {
+  const login = document.getElementById('saLogin').value.trim();
+  const pass = document.getElementById('saPassword').value;
+  const err = document.getElementById('authError');
+  if (login === 'root' && pass === 'root123') {
+    localStorage.setItem(SA_SESSION, '1');
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    refreshData();
+  } else {
+    err.textContent = 'Неверный логин или пароль';
+    err.classList.add('show');
+  }
+}
+function saLogout() {
+  localStorage.removeItem(SA_SESSION);
+  location.reload();
+}
+
+function renderStats() {
+  const uniqueDevices = new Set(currentUsers.map(u => u.deviceId).filter(Boolean));
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-box"><div class="lbl">Пользователей</div><div class="val">${currentUsers.length}</div></div>
+    <div class="stat-box"><div class="lbl">Устройств</div><div class="val">${uniqueDevices.size}</div></div>
+    <div class="stat-box"><div class="lbl">Анкет</div><div class="val">${currentSurveys.length}</div></div>
+    <div class="stat-box"><div class="lbl">Ботов</div><div class="val">${currentBots.length}</div></div>
+    <div class="stat-box"><div class="lbl">Ответов</div><div class="val">${currentResponses.length}</div></div>
+  `;
+}
+
+function formatDate(ts) {
+  try { return new Date(ts).toLocaleString('ru-RU'); } catch (e) { return '—'; }
+}
+
+function renderUsers() {
+  const box = document.getElementById('usersBox');
+  const filter = (document.getElementById('filterText').value || '').toLowerCase();
+  const sort = document.getElementById('filterSort').value;
+  let users = currentUsers.slice();
+  if (filter) {
+    users = users.filter(u =>
+      (u.name || '').toLowerCase().includes(filter) ||
+      (u.email || '').toLowerCase().includes(filter) ||
+      (u.deviceId || '').toLowerCase().includes(filter)
+    );
+  }
+  if (sort === 'new') users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  else if (sort === 'old') users.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  else if (sort === 'name') users.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  if (!users.length) {
+    box.innerHTML = '<div class="empty">Нет пользователей по заданному фильтру</div>';
+    return;
+  }
+  box.innerHTML = '';
+  users.forEach(u => {
+    const surveysCount = currentSurveys.filter(s => s.ownerId === u.id).length;
+    const botsCount = currentBots.filter(b => b.ownerId === u.id).length;
+    const dev = u.device || {};
+    const src = u.avatar || DEFAULT_AVATAR;
+    const deviceAccounts = currentUsers.filter(x => x.deviceId === u.deviceId).length;
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    card.innerHTML = `
+      <div class="user-head">
+        <div class="user-av"><img src="${src}" alt=""></div>
+        <div class="user-info">
+          <div class="name">${escapeHtml(u.name || 'Без имени')}</div>
+          <div class="email">${escapeHtml(u.email || '—')}</div>
+        </div>
+        <div class="user-id-badge">UID: ${escapeHtml(u.id)}</div>
+      </div>
+      <div class="device-grid">
+        <div class="device-item"><div class="k">Device ID</div><div class="v" style="font-family:monospace;color:#a5b4fc">${escapeHtml(u.deviceId || '—')}</div></div>
+        <div class="device-item"><div class="k">Аккаунтов на устройстве</div><div class="v">${deviceAccounts}</div></div>
+        <div class="device-item"><div class="k">Регистрация</div><div class="v">${formatDate(u.createdAt)}</div></div>
+        <div class="device-item"><div class="k">Платформа</div><div class="v">${escapeHtml(dev.platform || '—')}</div></div>
+        <div class="device-item"><div class="k">Экран</div><div class="v">${escapeHtml(dev.screen || '—')}</div></div>
+        <div class="device-item"><div class="k">Язык</div><div class="v">${escapeHtml(dev.language || '—')}</div></div>
+        <div class="device-item"><div class="k">Часовой пояс</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
+        <div class="device-item"><div class="k">Ядер CPU</div><div class="v">${dev.cores || '—'}</div></div>
+        <div class="device-item"><div class="k">Touch</div><div class="v">${escapeHtml(dev.touch || '—')}</div></div>
+        <div class="device-item"><div class="k">Анкет / Ботов</div><div class="v">${surveysCount} / ${botsCount}</div></div>
+        <div class="device-item full"><div class="k">User-Agent</div><div class="v" style="font-family:monospace;font-size:11px">${escapeHtml(dev.ua || '—')}</div></div>
+      </div>
+    `;
+    box.appendChild(card);
+  });
+}
+
+function renderDevices() {
+  const box = document.getElementById('devicesBox');
+  const map = {};
+  currentUsers.forEach(u => {
+    const id = u.deviceId || 'unknown';
+    if (!map[id]) map[id] = { id, users: [], device: u.device || {} };
+    map[id].users.push(u);
+  });
+  const ids = Object.keys(map);
+  if (!ids.length) {
+    box.innerHTML = '<div class="empty">Нет данных об устройствах</div>';
+    return;
+  }
+  box.innerHTML = '';
+  ids.sort((a, b) => map[b].users.length - map[a].users.length).forEach(id => {
+    const g = map[id];
+    const dev = g.device || {};
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    card.innerHTML = `
+      <div class="user-head">
+        <div class="user-av" style="background:#312e81;color:#c7d2fe;font-size:20px">📱</div>
+        <div class="user-info">
+          <div class="name" style="font-family:monospace;font-size:13px;color:#a5b4fc">${escapeHtml(id)}</div>
+          <div class="email">Аккаунтов: ${g.users.length} • ${escapeHtml(dev.platform || '—')} • ${escapeHtml(dev.screen || '—')}</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+        ${g.users.map(u => `<span class="user-id-badge" style="background:#1e293b;color:#e2e8f0">${escapeHtml(u.name)} • ${escapeHtml(u.email)}</span>`).join('')}
+      </div>
+      <div class="device-grid" style="margin-top:8px">
+        <div class="device-item"><div class="k">Часовой пояс</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
+        <div class="device-item"><div class="k">Язык</div><div class="v">${escapeHtml(dev.language || '—')}</div></div>
+        <div class="device-item"><div class="k">Ядер CPU</div><div class="v">${dev.cores || '—'}</div></div>
+        <div class="device-item"><div class="k">Touch</div><div class="v">${escapeHtml(dev.touch || '—')}</div></div>
+      </div>
+    `;
+    box.appendChild(card);
+  });
+}
+
+function renderSystemSummary() {
+  const box = document.getElementById('systemSummary');
+  const totalResponses = currentResponses.length;
+  const publicResponses = currentResponses.filter(r => r.source === 'public').length;
+  const botResponses = currentResponses.filter(r => r.source === 'bot').length;
+  const topSurveys = currentSurveys.map(s => ({
+    title: s.title,
+    count: currentResponses.filter(r => r.surveyId === s.id).length,
+    owner: currentUsers.find(u => u.id === s.ownerId)?.name || '—'
+  })).sort((a, b) => b.count - a.count).slice(0, 5);
+
+  box.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-box"><div class="lbl">Всего ответов</div><div class="val">${totalResponses}</div></div>
+      <div class="stat-box"><div class="lbl">От людей</div><div class="val">${publicResponses}</div></div>
+      <div class="stat-box"><div class="lbl">От ботов</div><div class="val">${botResponses}</div></div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="hint" style="margin-bottom:6px">Топ-5 анкет по ответам:</div>
+      ${topSurveys.length ? topSurveys.map(s => `
+        <div style="display:flex;justify-content:space-between;padding:8px 10px;background:#0f172a;border-radius:8px;margin-bottom:6px;border:1px solid #334155">
+          <div>
+            <div style="font-weight:600;color:#f1f5f9;font-size:13px">${escapeHtml(s.title)}</div>
+            <div style="font-size:11px;color:#94a3b8">автор: ${escapeHtml(s.owner)}</div>
+          </div>
+          <div style="font-weight:700;color:#a5b4fc;font-size:16px">${s.count}</div>
+        </div>
+      `).join('') : '<div class="empty">Нет анкет</div>'}
+    </div>
+  `;
+}
+
+if (localStorage.getItem(SA_SESSION) === '1') {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  refreshData();
+}
+
+setInterval(() => {
+  if (localStorage.getItem(SA_SESSION) === '1') refreshData();
+}, 3000);
+</script>
+</body>
+</html>

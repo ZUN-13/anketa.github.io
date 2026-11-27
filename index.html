@@ -36,6 +36,21 @@
       font-size: 18px;
     }
 
+    .live-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .live-dot span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse 1.8s infinite;
+    }
 
     @keyframes pulse {
       0% {
@@ -185,6 +200,23 @@
       background: #e0e7ff;
     }
 
+    .survey-meta {
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #475569;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .survey-meta .owner {
+      font-weight: 600;
+      color: #4338ca;
+    }
+
     .banner {
       background: #fef3c7;
       color: #92400e;
@@ -239,10 +271,11 @@
 
 <body>
   <header>
-    <h1>Анкетирование</h1>
+    <h1>📋 Анкетирование</h1>
+    <div class="live-dot"><span></span>онлайн</div>
   </header>
   <div class="container">
-    <div id="updateBanner" class="banner">Анкета обновлена администратором. Загружена актуальная версия.</div>
+    <div id="updateBanner" class="banner">Анкета обновлена. Загружена актуальная версия.</div>
     <div class="card">
       <div id="surveyPickRow" style="display:none">
         <select id="surveyPick"></select>
@@ -252,8 +285,8 @@
   </div>
 
   <script>
-    const DATA_KEY = 'survey_app_v5';
-    const CHANNEL_NAME = 'survey_updates';
+    const DATA_KEY = 'survey_app_v6';
+    const CHANNEL_NAME = 'survey_updates_v6';
     const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" fill="#cbd5e1"/>
@@ -277,7 +310,7 @@
         const raw = localStorage.getItem(DATA_KEY);
         if (raw) return JSON.parse(raw);
       } catch (e) { }
-      return { surveys: [], bots: [], responses: [] };
+      return { users: [], surveys: [], bots: [], responses: [] };
     }
     function saveData(d) {
       try { localStorage.setItem(DATA_KEY, JSON.stringify(d)); } catch (e) { }
@@ -311,6 +344,7 @@
       return JSON.stringify(surveys.map(s => ({
         id: s.id,
         title: s.title,
+        ownerName: s.ownerName,
         questions: s.questions.map(q => ({ id: q.id, text: q.text, type: q.type, multi: q.multi, options: q.options }))
       })));
     }
@@ -325,13 +359,13 @@
         } else if (q.type === 'semi') {
           const own = document.querySelector(`input[data-qid="${q.id}"][data-type="semi-own"]`);
           if (own && own.value.trim()) dirty = true;
-          const checkedM = document.querySelector(`input[data-qid="${q.id}"][data-type="semi-multi"]:checked`);
-          const checkedS = document.querySelector(`input[data-qid="${q.id}"][data-type="semi-single"]:checked`);
-          if (checkedM || checkedS) dirty = true;
+          const cM = document.querySelector(`input[data-qid="${q.id}"][data-type="semi-multi"]:checked`);
+          const cS = document.querySelector(`input[data-qid="${q.id}"][data-type="semi-single"]:checked`);
+          if (cM || cS) dirty = true;
         } else {
-          const checkedM = document.querySelector(`input[data-qid="${q.id}"][data-type="closed-multi"]:checked`);
-          const checkedS = document.querySelector(`input[data-qid="${q.id}"][data-type="closed-single"]:checked`);
-          if (checkedM || checkedS) dirty = true;
+          const cM = document.querySelector(`input[data-qid="${q.id}"][data-type="closed-multi"]:checked`);
+          const cS = document.querySelector(`input[data-qid="${q.id}"][data-type="closed-single"]:checked`);
+          if (cM || cS) dirty = true;
         }
       });
       const nameEl = document.getElementById('respName');
@@ -380,7 +414,7 @@
       if (data.surveys.length > 1) {
         pickRow.style.display = 'block';
         pick.innerHTML = data.surveys.map(s =>
-          `<option value="${s.id}" ${s.id === currentSurveyId ? 'selected' : ''}>${escapeHtml(s.title)}</option>`
+          `<option value="${s.id}" ${s.id === currentSurveyId ? 'selected' : ''}>${escapeHtml(s.title)}${s.ownerName ? ' — ' + escapeHtml(s.ownerName) : ''}</option>`
         ).join('');
         pick.onchange = () => {
           currentSurveyId = pick.value;
@@ -395,11 +429,19 @@
 
       const dirty = isFormDirty(survey);
       if (dirty && !force) {
-        showBanner('Анкета была изменена администратором. Обновите страницу, чтобы увидеть новую версию (ваши ответы сохранятся в текущей сессии).');
+        showBanner('Анкета была изменена. Обновите страницу, чтобы увидеть новую версию.');
         return;
       }
 
+      const owner = data.users.find(u => u.id === survey.ownerId);
+      const ownerName = owner ? owner.name : (survey.ownerName || 'Неизвестный автор');
+
       box.innerHTML = `<h2>${escapeHtml(survey.title)}</h2>
+    <div class="survey-meta">
+      <span>Автор: <span class="owner">${escapeHtml(ownerName)}</span></span>
+      <span>Вопросов: ${survey.questions.length}</span>
+      <span>Ответов: ${data.responses.filter(r => r.surveyId === survey.id).length}</span>
+    </div>
     <p class="muted">Заполните все вопросы и отправьте ответы.</p>
     <div class="profile-row">
       <div class="profile-preview"><img id="profileImg" src="${pendingAvatar || DEFAULT_AVATAR}" alt=""></div>
@@ -450,7 +492,7 @@
     function submitPublic(survey) {
       const data = loadData();
       const liveSurvey = data.surveys.find(s => s.id === survey.id);
-      if (!liveSurvey) { alert('Анкета была удалена администратором.'); currentSurveyId = ''; renderPublic(true); return; }
+      if (!liveSurvey) { alert('Анкета была удалена.'); currentSurveyId = ''; renderPublic(true); return; }
       if (JSON.stringify(liveSurvey.questions) !== JSON.stringify(survey.questions)) {
         alert('Анкета была изменена. Загружена актуальная версия — заполните заново.');
         renderPublic(true);
@@ -506,42 +548,30 @@
         createdAt: Date.now()
       });
       saveData(data);
-      notifyChange();
+      if (channel) { try { channel.postMessage({ type: 'update', at: Date.now() }); } catch (e) { } }
       document.getElementById('publicQuestions').innerHTML = '';
       document.getElementById('publicSubmit').style.display = 'none';
       msg.innerHTML = '<div class="success" style="margin-top:12px">✅ Спасибо! Ваши ответы сохранены.</div>';
-    }
-
-    function notifyChange() {
-      if (channel) { try { channel.postMessage({ type: 'update', at: Date.now() }); } catch (e) { } }
     }
 
     function syncFromStorage() {
       const data = loadData();
       const newSig = signatureOf(data.surveys);
       if (newSig !== lastSignature) {
-        const hadSig = !!lastSignature;
+        const had = !!lastSignature;
         renderPublic();
-        if (hadSig && newSig) showBanner('Анкета обновлена администратором. Загружена актуальная версия.');
+        if (had && newSig) showBanner('Анкета обновлена. Загружена актуальная версия.');
       }
     }
 
-    window.addEventListener('storage', (e) => {
-      if (e.key === DATA_KEY) syncFromStorage();
-    });
-
+    window.addEventListener('storage', (e) => { if (e.key === DATA_KEY) syncFromStorage(); });
     try {
       channel = new BroadcastChannel(CHANNEL_NAME);
-      channel.onmessage = (e) => {
-        if (e.data && e.data.type === 'update') syncFromStorage();
-      };
+      channel.onmessage = (e) => { if (e.data && e.data.type === 'update') syncFromStorage(); };
     } catch (e) { channel = null; }
-
     setInterval(syncFromStorage, 1500);
     window.addEventListener('focus', syncFromStorage);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) syncFromStorage();
-    });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) syncFromStorage(); });
 
     renderPublic(true);
   </script>
