@@ -1,335 +1,1489 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Super Admin — Идентификация устройств</title>
-<style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #e2e8f0; min-height: 100vh; font-size: 15px; }
-  header { background: linear-gradient(135deg, #0f172a, #312e81); color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border-bottom: 1px solid #334155; }
-  header h1 { margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px; }
-  header .lock { background: #dc2626; padding: 2px 9px; border-radius: 8px; font-size: 11px; font-weight: 700; }
-  .container { max-width: 1240px; margin: 0 auto; padding: 16px; }
-  .card { background: #1e293b; border-radius: 14px; padding: 18px; margin-bottom: 16px; border: 1px solid #334155; box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
-  .card h2 { margin-top: 0; font-size: 16px; color: #a5b4fc; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .card p.hint { font-size: 12px; color: #94a3b8; margin: 0 0 12px; }
-  input, select, button { font-family: inherit; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #475569; outline: none; background: #0f172a; color: #e2e8f0; }
-  input:focus, select:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.25); }
-  button { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; border: none; cursor: pointer; font-weight: 500; transition: transform 0.15s; }
-  button:hover { transform: translateY(-1px); }
-  button.secondary { background: #475569; }
-  button.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-  .row input { flex: 1; min-width: 160px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .stat-box { background: linear-gradient(135deg, #312e81, #4338ca); border-radius: 12px; padding: 14px 16px; border: 1px solid #4f46e5; }
-  .stat-box .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #c7d2fe; font-weight: 700; margin-bottom: 4px; }
-  .stat-box .val { font-size: 24px; font-weight: 800; color: #fff; }
-  .user-card { background: #0f172a; border-radius: 12px; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; border-left: 4px solid #6366f1; }
-  .user-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-  .user-av { width: 44px; height: 44px; border-radius: 50%; background: #334155; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .user-av img { width: 100%; height: 100%; object-fit: cover; }
-  .user-info { flex: 1; min-width: 0; }
-  .user-info .name { font-weight: 700; color: #f1f5f9; font-size: 15px; }
-  .user-info .email { font-size: 12px; color: #94a3b8; }
-  .user-id-badge { font-family: monospace; font-size: 11px; background: #1e293b; color: #a5b4fc; padding: 3px 8px; border-radius: 6px; border: 1px solid #3730a3; }
-  .device-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 8px; }
-  .device-item { background: #1e293b; border-radius: 8px; padding: 8px 10px; border: 1px solid #334155; }
-  .device-item .k { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 2px; }
-  .device-item .v { font-size: 12px; color: #cbd5e1; word-break: break-word; }
-  .device-item.full { grid-column: 1 / -1; }
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-  .filters input, .filters select { flex: 1; min-width: 140px; }
-  .empty { text-align: center; padding: 30px 10px; color: #64748b; }
-  .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: radial-gradient(circle at top, #312e81 0%, #0f172a 70%); }
-  .auth-card { background: #1e293b; border-radius: 16px; padding: 26px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); border: 1px solid #334155; }
-  .auth-card h1 { margin: 0 0 4px; font-size: 22px; color: #a5b4fc; text-align: center; }
-  .auth-card p { margin: 0 0 18px; font-size: 13px; color: #94a3b8; text-align: center; }
-  .auth-card input { width: 100%; margin-bottom: 10px; padding: 12px; }
-  .auth-card button { width: 100%; padding: 12px; font-size: 15px; }
-  .auth-error { background: #7f1d1d; color: #fecaca; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 10px; display: none; }
-  .auth-error.show { display: block; }
-  .toolbar-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .toolbar-top .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  @media (max-width: 640px) {
-    .container { padding: 10px; }
-    .card { padding: 14px; }
-    header h1 { font-size: 14px; }
-    input, select, button { font-size: 16px; }
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Vault — Command Center</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg: #08090c;
+            --bg-2: #0d0f14;
+            --panel: #111318;
+            --panel-2: #161a22;
+            --line: #232833;
+            --line-2: #2f3644;
+            --text: #c9d1d9;
+            --text-dim: #6e7681;
+            --text-mute: #484f58;
+            --accent: #e63946;
+            --accent-2: #ff4d5e;
+            --accent-glow: rgba(230, 57, 70, 0.35);
+            --green: #2ea043;
+            --amber: #d29922;
+            --blue: #58a6ff;
+            --mono: 'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 14px;
+            background-image:
+                linear-gradient(rgba(230, 57, 70, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(230, 57, 70, 0.025) 1px, transparent 1px);
+            background-size: 32px 32px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(230, 57, 70, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.15) 2px,
+                    rgba(0, 0, 0, 0.15) 4px);
+            pointer-events: none;
+            opacity: 0.35;
+            z-index: 1;
+        }
+
+        .auth-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+            background: radial-gradient(ellipse at center, #0d0f14 0%, #08090c 70%);
+        }
+
+        .auth-box {
+            width: 100%;
+            max-width: 380px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 32px 28px;
+            position: relative;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 20px 80px rgba(0, 0, 0, 0.9), 0 0 60px rgba(230, 57, 70, 0.05);
+        }
+
+        .auth-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .auth-box::after {
+            content: 'RESTRICTED';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--accent);
+            padding: 2px 6px;
+            border: 1px solid var(--accent);
+            opacity: 0.7;
+            animation: restrictedBlink 3s infinite;
+        }
+
+        @keyframes restrictedBlink {
+
+            0%,
+            100% {
+                opacity: 0.7;
+            }
+
+            50% {
+                opacity: 0.25;
+            }
+        }
+
+        .auth-emblem {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-emblem svg {
+            width: 52px;
+            height: 52px;
+            stroke: var(--accent);
+            fill: none;
+            filter: drop-shadow(0 0 8px var(--accent-glow));
+        }
+
+        .auth-box h1 {
+            margin: 0 0 4px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #f0f6fc;
+            font-family: var(--mono);
+            text-transform: uppercase;
+        }
+
+        .auth-box .subtitle {
+            text-align: center;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: var(--text-mute);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .field-group {
+            margin-bottom: 12px;
+        }
+
+        .field-group label {
+            display: block;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+        }
+
+        .auth-box input {
+            width: 100%;
+            padding: 11px 13px;
+            background: var(--bg);
+            border: 1px solid var(--line-2);
+            border-radius: 3px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .auth-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .auth-box input::placeholder {
+            color: var(--text-mute);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            background: linear-gradient(180deg, #2a2f3a, #1a1e26);
+            border: 1px solid var(--accent);
+            border-radius: 3px;
+            color: var(--accent-2);
+            font-family: var(--mono);
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-btn:hover {
+            background: linear-gradient(180deg, var(--accent), #b32d38);
+            color: #fff;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .auth-error {
+            background: rgba(230, 57, 70, 0.1);
+            border: 1px solid var(--accent);
+            color: var(--accent-2);
+            padding: 9px 12px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-family: var(--mono);
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .auth-error.show {
+            display: block;
+        }
+
+        .auth-hint {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--line);
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-mute);
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-hint code {
+            color: var(--text-dim);
+            background: var(--bg);
+            padding: 1px 5px;
+            border-radius: 2px;
+        }
+
+        .auth-warning {
+            margin-top: 12px;
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--text-mute);
+            text-align: center;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .topbar {
+            background: linear-gradient(180deg, #0a0c10, #08090c);
+            border-bottom: 1px solid var(--line);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .topbar::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.5;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .topbar-emblem {
+            width: 26px;
+            height: 26px;
+            stroke: var(--accent);
+            fill: none;
+            filter: drop-shadow(0 0 4px var(--accent-glow));
+        }
+
+        .topbar-title {
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            color: #f0f6fc;
+            text-transform: uppercase;
+        }
+
+        .topbar-badge {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 2px 7px;
+            border-radius: 2px;
+            margin-left: 4px;
+            animation: badgePulse 2.5s infinite;
+        }
+
+        @keyframes badgePulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: var(--green);
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+            animation: dotPulse 1.5s infinite;
+        }
+
+        @keyframes dotPulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .clock {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--line-2);
+            color: var(--text-dim);
+            padding: 6px 12px;
+            border-radius: 3px;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent-2);
+        }
+
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            padding: 14px 16px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .metric::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--line-2);
+            transition: background 0.2s;
+        }
+
+        .metric:hover {
+            border-color: var(--line-2);
+        }
+
+        .metric:hover::before {
+            background: var(--accent);
+        }
+
+        .metric .lbl {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-mute);
+            margin-bottom: 6px;
+        }
+
+        .metric .val {
+            font-family: var(--mono);
+            font-size: 26px;
+            font-weight: 700;
+            color: #f0f6fc;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .metric.danger::before {
+            background: var(--accent);
+        }
+
+        .metric.danger .val {
+            color: var(--accent-2);
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--panel-2);
+            border-bottom: 1px solid var(--line);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .panel-title {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title .marker {
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        .panel-body {
+            padding: 16px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .controls input,
+        .controls select {
+            padding: 8px 11px;
+            background: var(--bg);
+            border: 1px solid var(--line-2);
+            border-radius: 3px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 11px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .controls input:focus,
+        .controls select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .controls input {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .controls select {
+            min-width: 130px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            background: var(--panel-2);
+            border: 1px solid var(--line-2);
+            border-radius: 3px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent-2);
+        }
+
+        .btn.danger {
+            border-color: var(--accent);
+            color: var(--accent-2);
+        }
+
+        .btn.danger:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn.success {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .btn.success:hover {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .btn.warn {
+            border-color: var(--amber);
+            color: var(--amber);
+        }
+
+        .btn.warn:hover {
+            background: var(--amber);
+            color: #000;
+        }
+
+        .btn.small {
+            padding: 5px 10px;
+            font-size: 9px;
+        }
+
+        .user-card {
+            background: var(--bg-2);
+            border: 1px solid var(--line);
+            border-left: 2px solid var(--line-2);
+            border-radius: 3px;
+            padding: 14px;
+            margin-bottom: 10px;
+            transition: border-left-color 0.2s;
+        }
+
+        .user-card:hover {
+            border-left-color: var(--accent);
+        }
+
+        .user-card.banned {
+            border-left-color: var(--accent);
+            background: linear-gradient(90deg, rgba(230, 57, 70, 0.05), var(--bg-2) 40%);
+        }
+
+        .user-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .user-av {
+            width: 44px;
+            height: 44px;
+            border-radius: 3px;
+            background: var(--panel-2);
+            border: 1px solid var(--line-2);
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--mono);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dim);
+        }
+
+        .user-av img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 3px;
+        }
+
+        .user-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #f0f6fc;
+            font-family: var(--mono);
+            letter-spacing: 0.5px;
+        }
+
+        .tag {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 1px;
+            padding: 2px 7px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .tag.banned {
+            background: rgba(230, 57, 70, 0.15);
+            color: var(--accent-2);
+            border: 1px solid var(--accent);
+        }
+
+        .tag.active {
+            background: rgba(46, 160, 67, 0.1);
+            color: var(--green);
+            border: 1px solid rgba(46, 160, 67, 0.4);
+        }
+
+        .user-meta {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-mute);
+            letter-spacing: 0.3px;
+            line-height: 1.5;
+        }
+
+        .user-meta b {
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .uid-chip {
+            font-family: var(--mono);
+            font-size: 10px;
+            background: var(--bg);
+            color: var(--text-dim);
+            padding: 2px 6px;
+            border-radius: 2px;
+            border: 1px solid var(--line);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 6px;
+            margin-top: 10px;
+            margin-bottom: 12px;
+        }
+
+        .data-cell {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 2px;
+            padding: 7px 10px;
+        }
+
+        .data-cell .k {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-mute);
+            margin-bottom: 3px;
+        }
+
+        .data-cell .v {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text);
+            word-break: break-word;
+        }
+
+        .data-cell.full {
+            grid-column: 1 / -1;
+        }
+
+        .data-cell.highlight .v {
+            color: var(--accent-2);
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding-top: 10px;
+            border-top: 1px solid var(--line);
+        }
+
+        .device-block {
+            background: var(--bg-2);
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .device-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .device-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 3px;
+            background: var(--panel-2);
+            border: 1px solid var(--line-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .device-id {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent-2);
+            letter-spacing: 0.5px;
+        }
+
+        .device-accounts {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .account-pill {
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 3px 8px;
+            background: var(--panel-2);
+            border: 1px solid var(--line-2);
+            border-radius: 2px;
+            color: var(--text-dim);
+        }
+
+        .account-pill.banned {
+            background: rgba(230, 57, 70, 0.1);
+            border-color: var(--accent);
+            color: var(--accent-2);
+        }
+
+        .top-surveys {
+            margin-top: 6px;
+        }
+
+        .top-survey-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: var(--bg-2);
+            border: 1px solid var(--line);
+            border-left: 2px solid var(--line-2);
+            border-radius: 3px;
+            margin-bottom: 6px;
+            transition: border-left-color 0.2s;
+        }
+
+        .top-survey-row:hover {
+            border-left-color: var(--accent);
+        }
+
+        .top-survey-title {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .top-survey-owner {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-mute);
+        }
+
+        .top-survey-count {
+            font-family: var(--mono);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-2);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px 10px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: var(--text-mute);
+            text-transform: uppercase;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--panel);
+            border: 1px solid var(--line-2);
+            border-radius: 3px;
+            padding: 24px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .modal h3 {
+            margin: 0 0 18px;
+            font-family: var(--mono);
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-2);
+            font-weight: 700;
+        }
+
+        .modal label {
+            display: block;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+            margin-top: 12px;
+        }
+
+        .modal input,
+        .modal textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--line-2);
+            border-radius: 3px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .modal input:focus,
+        .modal textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .modal .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .modal .btn-row button {
+            flex: 1;
+            padding: 10px;
+        }
+
+        @media (max-width: 700px) {
+            .main {
+                padding: 12px;
+            }
+
+            .topbar {
+                padding: 0 14px;
+                height: 50px;
+            }
+
+            .topbar-title {
+                font-size: 11px;
+                letter-spacing: 1.5px;
+            }
+
+            .topbar-badge {
+                display: none;
+            }
+
+            .clock {
+                display: none;
+            }
+
+            .metrics-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .metric {
+                padding: 11px 12px;
+            }
+
+            .metric .val {
+                font-size: 20px;
+            }
+
+            .panel-body {
+                padding: 12px;
+            }
+
+            .user-card {
+                padding: 12px;
+            }
+
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls input {
+                min-width: 0;
+            }
+
+            .auth-box {
+                padding: 26px 20px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<div id="authScreen" class="auth-screen">
-  <div class="auth-card">
-    <h1>🛡️ Super Admin</h1>
-    <p>Глубокая админ-панель идентификации устройств</p>
-    <div id="authError" class="auth-error"></div>
-    <input type="text" id="saLogin" placeholder="Логин">
-    <input type="password" id="saPassword" placeholder="Пароль">
-    <button onclick="saLogin()">Войти</button>
-    <p style="margin-top:14px;font-size:11px;color:#64748b">По умолчанию: <code>root</code> / <code>root123</code></p>
-  </div>
-</div>
-
-<div id="appScreen" style="display:none">
-  <header>
-    <h1>🛡️ Super Admin <span class="lock">ROOT</span></h1>
-    <button class="danger" onclick="saLogout()">Выйти</button>
-  </header>
-  <div class="container">
-    <div class="stats-grid" id="statsGrid"></div>
-
-    <div class="card">
-      <div class="toolbar-top">
-        <h2 style="margin:0">👥 Зарегистрированные пользователи и их устройства</h2>
-        <div class="actions">
-          <button class="secondary" onclick="refreshData()">Обновить</button>
+    <div id="authScreen" class="auth-screen">
+        <div class="auth-box">
+            <div class="auth-emblem">
+                <svg viewBox="0 0 24 24" stroke-width="1.5">
+                    <path d="M12 2L3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4z" stroke-linejoin="round" />
+                    <path d="M12 8v4M12 15v.5" stroke-linecap="round" />
+                </svg>
+            </div>
+            <h1>Black Vault</h1>
+            <div class="subtitle">Command Center Access</div>
+            <div id="authError" class="auth-error"></div>
+            <div class="field-group">
+                <label>Идентификатор</label>
+                <input type="text" id="saLogin" placeholder="root" autocomplete="off">
+            </div>
+            <div class="field-group">
+                <label>Кодовое слово</label>
+                <input type="password" id="saPassword" placeholder="••••••••" autocomplete="off">
+            </div>
+            <button class="auth-btn" onclick="saLogin()">Войти в систему</button>
+            <div class="auth-hint">Demo: <code>root</code> / <code>root123</code></div>
+            <div class="auth-warning">Все действия логируются</div>
         </div>
-      </div>
-      <p class="hint">Здесь отображаются все пользователи, зарегистрировавшиеся в админ-панели, с полной идентификацией их устройств (User-Agent, платформа, экран, часовой пояс, количество ядер, поддержка touch и уникальный Device ID).</p>
-      <div class="filters">
-        <input type="text" id="filterText" placeholder="Поиск по имени, email или device ID" oninput="renderUsers()">
-        <select id="filterSort" onchange="renderUsers()">
-          <option value="new">Сначала новые</option>
-          <option value="old">Сначала старые</option>
-          <option value="name">По имени</option>
-        </select>
-      </div>
-      <div id="usersBox"></div>
     </div>
 
-    <div class="card">
-      <h2>📱 Уникальные устройства</h2>
-      <p class="hint">Сгруппировано по Device ID. Если на одном устройстве зарегистрировано несколько аккаунтов — они будут видны здесь.</p>
-      <div id="devicesBox"></div>
+    <div id="appScreen" style="display:none">
+        <div class="topbar">
+            <div class="topbar-left">
+                <svg class="topbar-emblem" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path d="M12 2L3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4z" stroke-linejoin="round" />
+                    <path d="M12 8v4M12 15v.5" stroke-linecap="round" />
+                </svg>
+                <div class="topbar-title">Black Vault</div>
+                <span class="topbar-badge">ROOT</span>
+            </div>
+            <div class="topbar-right">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Online</span>
+                </div>
+                <div class="clock" id="liveClock">--:--:--</div>
+                <button class="logout-btn" onclick="saLogout()">Выход</button>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="metrics-row" id="metricsRow"></div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title"><span class="marker">▸</span>Досье пользователей</div>
+                    <button class="btn small" onclick="refreshData()">↻ Обновить</button>
+                </div>
+                <div class="panel-body">
+                    <div class="controls">
+                        <input type="text" id="filterText" placeholder="Поиск: имя, UID, Device ID..."
+                            oninput="renderUsers()">
+                        <select id="filterStatus" onchange="renderUsers()">
+                            <option value="all">Все статусы</option>
+                            <option value="active">Активные</option>
+                            <option value="banned">Забаненные</option>
+                        </select>
+                        <select id="filterSort" onchange="renderUsers()">
+                            <option value="new">Сначала новые</option>
+                            <option value="old">Сначала старые</option>
+                            <option value="name">По имени</option>
+                        </select>
+                    </div>
+                    <div id="usersBox"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title"><span class="marker">▸</span>Терминалы / Устройства</div>
+                </div>
+                <div class="panel-body">
+                    <div id="devicesBox"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title"><span class="marker">▸</span>Сводка активности</div>
+                </div>
+                <div class="panel-body">
+                    <div id="systemSummary"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="card">
-      <h2>📊 Сводка по системе</h2>
-      <div id="systemSummary"></div>
+    <div id="editModal" class="modal-backdrop">
+        <div class="modal">
+            <h3>▸ Редактирование субъекта</h3>
+            <label>Имя пользователя</label>
+            <input type="text" id="editName">
+            <label>Новый пароль (пусто — без изменений)</label>
+            <input type="text" id="editPassword" placeholder="••••••••">
+            <label>Аватар (URL или data:image)</label>
+            <textarea id="editAvatar" rows="3" placeholder="https://... или data:image/png;base64,..."></textarea>
+            <div class="btn-row">
+                <button class="btn" onclick="closeEditModal()">Отмена</button>
+                <button class="btn success" onclick="saveUserEdit()">Применить</button>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-const DATA_KEY = 'survey_app_v6';
-const SA_SESSION = 'survey_superadmin_session_v6';
-const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
+    <script>
+        const DATA_KEY = 'survey_app_v6';
+        const SA_SESSION = 'survey_superadmin_session_v6';
+        const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#475569"/>
-  <circle cx="32" cy="24" r="12" fill="#94a3b8"/>
-  <path d="M8 60c0-13 10-22 24-22s24 9 24 22z" fill="#94a3b8"/>
+  <rect width="64" height="64" fill="#161a22"/>
+  <circle cx="32" cy="24" r="12" fill="#2f3644"/>
+  <path d="M8 60c0-13 10-22 24-22s24 9 24 22z" fill="#2f3644"/>
 </svg>
 `)}`;
 
-let currentUsers = [];
-let currentSurveys = [];
-let currentBots = [];
-let currentResponses = [];
+        let currentUsers = [];
+        let currentSurveys = [];
+        let currentBots = [];
+        let currentResponses = [];
+        let editingUserId = null;
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
 
-function loadAll() {
-  try {
-    const raw = localStorage.getItem(DATA_KEY);
-    if (raw) {
-      const d = JSON.parse(raw);
-      currentUsers = d.users || [];
-      currentSurveys = d.surveys || [];
-      currentBots = d.bots || [];
-      currentResponses = d.responses || [];
-      return;
-    }
-  } catch (e) {}
-  currentUsers = []; currentSurveys = []; currentBots = []; currentResponses = [];
-}
+        function updateClock() {
+            const el = document.getElementById('liveClock');
+            if (!el) return;
+            const d = new Date();
+            el.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()]
+                .map(v => String(v).padStart(2, '0')).join(':');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-function refreshData() {
-  loadAll();
-  renderStats();
-  renderUsers();
-  renderDevices();
-  renderSystemSummary();
-}
+        function loadAll() {
+            try {
+                const raw = localStorage.getItem(DATA_KEY);
+                if (raw) {
+                    const d = JSON.parse(raw);
+                    currentUsers = d.users || [];
+                    currentSurveys = d.surveys || [];
+                    currentBots = d.bots || [];
+                    currentResponses = d.responses || [];
+                    return;
+                }
+            } catch (e) { }
+            currentUsers = []; currentSurveys = []; currentBots = []; currentResponses = [];
+        }
 
-function saLogin() {
-  const login = document.getElementById('saLogin').value.trim();
-  const pass = document.getElementById('saPassword').value;
-  const err = document.getElementById('authError');
-  if (login === 'root' && pass === 'root123') {
-    localStorage.setItem(SA_SESSION, '1');
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
-    refreshData();
-  } else {
-    err.textContent = 'Неверный логин или пароль';
-    err.classList.add('show');
-  }
-}
-function saLogout() {
-  localStorage.removeItem(SA_SESSION);
-  location.reload();
-}
+        function saveAll() {
+            try {
+                localStorage.setItem(DATA_KEY, JSON.stringify({
+                    users: currentUsers, surveys: currentSurveys, bots: currentBots, responses: currentResponses
+                }));
+                try {
+                    const ch = new BroadcastChannel('survey_updates_v6');
+                    ch.postMessage({ type: 'update', at: Date.now() });
+                    ch.close();
+                } catch (e) { }
+            } catch (e) { }
+        }
 
-function renderStats() {
-  const uniqueDevices = new Set(currentUsers.map(u => u.deviceId).filter(Boolean));
-  document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-box"><div class="lbl">Пользователей</div><div class="val">${currentUsers.length}</div></div>
-    <div class="stat-box"><div class="lbl">Устройств</div><div class="val">${uniqueDevices.size}</div></div>
-    <div class="stat-box"><div class="lbl">Анкет</div><div class="val">${currentSurveys.length}</div></div>
-    <div class="stat-box"><div class="lbl">Ботов</div><div class="val">${currentBots.length}</div></div>
-    <div class="stat-box"><div class="lbl">Ответов</div><div class="val">${currentResponses.length}</div></div>
+        function refreshData() {
+            loadAll();
+            renderMetrics();
+            renderUsers();
+            renderDevices();
+            renderSystemSummary();
+        }
+
+        function saLogin() {
+            const login = document.getElementById('saLogin').value.trim();
+            const pass = document.getElementById('saPassword').value;
+            const err = document.getElementById('authError');
+            if (login === 'root' && pass === 'root123') {
+                localStorage.setItem(SA_SESSION, '1');
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'block';
+                refreshData();
+            } else {
+                err.textContent = '✕ Доступ запрещён. Неверные учётные данные.';
+                err.classList.add('show');
+            }
+        }
+        function saLogout() {
+            localStorage.removeItem(SA_SESSION);
+            location.reload();
+        }
+
+        function renderMetrics() {
+            const uniqueDevices = new Set(currentUsers.map(u => u.deviceId).filter(Boolean));
+            const banned = currentUsers.filter(u => u.banned).length;
+            const active = currentUsers.length - banned;
+            document.getElementById('metricsRow').innerHTML = `
+    <div class="metric"><div class="lbl">Субъекты</div><div class="val">${currentUsers.length}</div></div>
+    <div class="metric"><div class="lbl">Активные</div><div class="val" style="color:var(--green)">${active}</div></div>
+    <div class="metric danger"><div class="lbl">Забанено</div><div class="val">${banned}</div></div>
+    <div class="metric"><div class="lbl">Терминалы</div><div class="val">${uniqueDevices.size}</div></div>
+    <div class="metric"><div class="lbl">Анкеты</div><div class="val">${currentSurveys.length}</div></div>
+    <div class="metric"><div class="lbl">Боты</div><div class="val">${currentBots.length}</div></div>
+    <div class="metric"><div class="lbl">Ответы</div><div class="val">${currentResponses.length}</div></div>
   `;
-}
+        }
 
-function formatDate(ts) {
-  try { return new Date(ts).toLocaleString('ru-RU'); } catch (e) { return '—'; }
-}
+        function formatDate(ts) {
+            try {
+                const d = new Date(ts);
+                return d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            } catch (e) { return '—'; }
+        }
 
-function renderUsers() {
-  const box = document.getElementById('usersBox');
-  const filter = (document.getElementById('filterText').value || '').toLowerCase();
-  const sort = document.getElementById('filterSort').value;
-  let users = currentUsers.slice();
-  if (filter) {
-    users = users.filter(u =>
-      (u.name || '').toLowerCase().includes(filter) ||
-      (u.email || '').toLowerCase().includes(filter) ||
-      (u.deviceId || '').toLowerCase().includes(filter)
-    );
-  }
-  if (sort === 'new') users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  else if (sort === 'old') users.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-  else if (sort === 'name') users.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        function renderUsers() {
+            const box = document.getElementById('usersBox');
+            const filter = (document.getElementById('filterText').value || '').toLowerCase();
+            const sort = document.getElementById('filterSort').value;
+            const status = document.getElementById('filterStatus').value;
+            let users = currentUsers.slice();
+            if (filter) {
+                users = users.filter(u =>
+                    (u.name || '').toLowerCase().includes(filter) ||
+                    (u.deviceId || '').toLowerCase().includes(filter) ||
+                    (u.id || '').toLowerCase().includes(filter)
+                );
+            }
+            if (status === 'active') users = users.filter(u => !u.banned);
+            else if (status === 'banned') users = users.filter(u => u.banned);
+            if (sort === 'new') users.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            else if (sort === 'old') users.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+            else if (sort === 'name') users.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
-  if (!users.length) {
-    box.innerHTML = '<div class="empty">Нет пользователей по заданному фильтру</div>';
-    return;
-  }
-  box.innerHTML = '';
-  users.forEach(u => {
-    const surveysCount = currentSurveys.filter(s => s.ownerId === u.id).length;
-    const botsCount = currentBots.filter(b => b.ownerId === u.id).length;
-    const dev = u.device || {};
-    const src = u.avatar || DEFAULT_AVATAR;
-    const deviceAccounts = currentUsers.filter(x => x.deviceId === u.deviceId).length;
-    const card = document.createElement('div');
-    card.className = 'user-card';
-    card.innerHTML = `
+            if (!users.length) {
+                box.innerHTML = '<div class="empty">▸ Нет записей по фильтру</div>';
+                return;
+            }
+            box.innerHTML = '';
+            users.forEach(u => {
+                const surveysCount = currentSurveys.filter(s => s.ownerId === u.id).length;
+                const botsCount = currentBots.filter(b => b.ownerId === u.id).length;
+                const responsesCount = currentResponses.filter(r => {
+                    const s = currentSurveys.find(x => x.id === r.surveyId);
+                    return s && s.ownerId === u.id;
+                }).length;
+                const dev = u.device || {};
+                const lastDev = u.lastDevice || dev;
+                const src = u.avatar || DEFAULT_AVATAR;
+                const deviceAccounts = currentUsers.filter(x => x.deviceId === u.deviceId).length;
+                const card = document.createElement('div');
+                card.className = 'user-card' + (u.banned ? ' banned' : '');
+                card.innerHTML = `
       <div class="user-head">
         <div class="user-av"><img src="${src}" alt=""></div>
         <div class="user-info">
-          <div class="name">${escapeHtml(u.name || 'Без имени')}</div>
-          <div class="email">${escapeHtml(u.email || '—')}</div>
-        </div>
-        <div class="user-id-badge">UID: ${escapeHtml(u.id)}</div>
-      </div>
-      <div class="device-grid">
-        <div class="device-item"><div class="k">Device ID</div><div class="v" style="font-family:monospace;color:#a5b4fc">${escapeHtml(u.deviceId || '—')}</div></div>
-        <div class="device-item"><div class="k">Аккаунтов на устройстве</div><div class="v">${deviceAccounts}</div></div>
-        <div class="device-item"><div class="k">Регистрация</div><div class="v">${formatDate(u.createdAt)}</div></div>
-        <div class="device-item"><div class="k">Платформа</div><div class="v">${escapeHtml(dev.platform || '—')}</div></div>
-        <div class="device-item"><div class="k">Экран</div><div class="v">${escapeHtml(dev.screen || '—')}</div></div>
-        <div class="device-item"><div class="k">Язык</div><div class="v">${escapeHtml(dev.language || '—')}</div></div>
-        <div class="device-item"><div class="k">Часовой пояс</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
-        <div class="device-item"><div class="k">Ядер CPU</div><div class="v">${dev.cores || '—'}</div></div>
-        <div class="device-item"><div class="k">Touch</div><div class="v">${escapeHtml(dev.touch || '—')}</div></div>
-        <div class="device-item"><div class="k">Анкет / Ботов</div><div class="v">${surveysCount} / ${botsCount}</div></div>
-        <div class="device-item full"><div class="k">User-Agent</div><div class="v" style="font-family:monospace;font-size:11px">${escapeHtml(dev.ua || '—')}</div></div>
-      </div>
-    `;
-    box.appendChild(card);
-  });
-}
-
-function renderDevices() {
-  const box = document.getElementById('devicesBox');
-  const map = {};
-  currentUsers.forEach(u => {
-    const id = u.deviceId || 'unknown';
-    if (!map[id]) map[id] = { id, users: [], device: u.device || {} };
-    map[id].users.push(u);
-  });
-  const ids = Object.keys(map);
-  if (!ids.length) {
-    box.innerHTML = '<div class="empty">Нет данных об устройствах</div>';
-    return;
-  }
-  box.innerHTML = '';
-  ids.sort((a, b) => map[b].users.length - map[a].users.length).forEach(id => {
-    const g = map[id];
-    const dev = g.device || {};
-    const card = document.createElement('div');
-    card.className = 'user-card';
-    card.innerHTML = `
-      <div class="user-head">
-        <div class="user-av" style="background:#312e81;color:#c7d2fe;font-size:20px">📱</div>
-        <div class="user-info">
-          <div class="name" style="font-family:monospace;font-size:13px;color:#a5b4fc">${escapeHtml(id)}</div>
-          <div class="email">Аккаунтов: ${g.users.length} • ${escapeHtml(dev.platform || '—')} • ${escapeHtml(dev.screen || '—')}</div>
-        </div>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
-        ${g.users.map(u => `<span class="user-id-badge" style="background:#1e293b;color:#e2e8f0">${escapeHtml(u.name)} • ${escapeHtml(u.email)}</span>`).join('')}
-      </div>
-      <div class="device-grid" style="margin-top:8px">
-        <div class="device-item"><div class="k">Часовой пояс</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
-        <div class="device-item"><div class="k">Язык</div><div class="v">${escapeHtml(dev.language || '—')}</div></div>
-        <div class="device-item"><div class="k">Ядер CPU</div><div class="v">${dev.cores || '—'}</div></div>
-        <div class="device-item"><div class="k">Touch</div><div class="v">${escapeHtml(dev.touch || '—')}</div></div>
-      </div>
-    `;
-    box.appendChild(card);
-  });
-}
-
-function renderSystemSummary() {
-  const box = document.getElementById('systemSummary');
-  const totalResponses = currentResponses.length;
-  const publicResponses = currentResponses.filter(r => r.source === 'public').length;
-  const botResponses = currentResponses.filter(r => r.source === 'bot').length;
-  const topSurveys = currentSurveys.map(s => ({
-    title: s.title,
-    count: currentResponses.filter(r => r.surveyId === s.id).length,
-    owner: currentUsers.find(u => u.id === s.ownerId)?.name || '—'
-  })).sort((a, b) => b.count - a.count).slice(0, 5);
-
-  box.innerHTML = `
-    <div class="stats-grid">
-      <div class="stat-box"><div class="lbl">Всего ответов</div><div class="val">${totalResponses}</div></div>
-      <div class="stat-box"><div class="lbl">От людей</div><div class="val">${publicResponses}</div></div>
-      <div class="stat-box"><div class="lbl">От ботов</div><div class="val">${botResponses}</div></div>
-    </div>
-    <div style="margin-top:12px">
-      <div class="hint" style="margin-bottom:6px">Топ-5 анкет по ответам:</div>
-      ${topSurveys.length ? topSurveys.map(s => `
-        <div style="display:flex;justify-content:space-between;padding:8px 10px;background:#0f172a;border-radius:8px;margin-bottom:6px;border:1px solid #334155">
-          <div>
-            <div style="font-weight:600;color:#f1f5f9;font-size:13px">${escapeHtml(s.title)}</div>
-            <div style="font-size:11px;color:#94a3b8">автор: ${escapeHtml(s.owner)}</div>
+          <div class="user-name-row">
+            <span class="user-name">${escapeHtml(u.name || 'NO_NAME')}</span>
+            ${u.banned ? '<span class="tag banned">ЗАБАНЕН</span>' : '<span class="tag active">АКТИВЕН</span>'}
           </div>
-          <div style="font-weight:700;color:#a5b4fc;font-size:16px">${s.count}</div>
+          <div class="user-meta">
+            UID: <span class="uid-chip">${escapeHtml(u.id)}</span><br>
+            Регистрация: <b>${formatDate(u.createdAt)}</b> • Входов: <b>${u.loginCount || 0}</b> • Последний: <b>${formatDate(u.lastLoginAt)}</b>
+          </div>
         </div>
-      `).join('') : '<div class="empty">Нет анкет</div>'}
+      </div>
+      <div class="data-grid">
+        <div class="data-cell highlight"><div class="k">Device ID</div><div class="v">${escapeHtml(u.deviceId || '—')}</div></div>
+        <div class="data-cell"><div class="k">Аккаунтов на терминале</div><div class="v">${deviceAccounts}</div></div>
+        <div class="data-cell"><div class="k">Платформа</div><div class="v">${escapeHtml(dev.platform || '—')}</div></div>
+        <div class="data-cell"><div class="k">Экран / avail</div><div class="v">${escapeHtml(dev.screen || '—')} / ${escapeHtml(dev.availScreen || '—')}</div></div>
+        <div class="data-cell"><div class="k">Язык</div><div class="v">${escapeHtml(dev.language || '—')}</div></div>
+        <div class="data-cell"><div class="k">Языки</div><div class="v">${escapeHtml(dev.languages || '—')}</div></div>
+        <div class="data-cell"><div class="k">Timezone</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
+        <div class="data-cell"><div class="k">CPU / RAM</div><div class="v">${dev.cores || '—'} / ${dev.memory || '—'} GB</div></div>
+        <div class="data-cell"><div class="k">Touch / Online</div><div class="v">${escapeHtml(dev.touch || '—')} / ${escapeHtml(dev.online || '—')}</div></div>
+        <div class="data-cell"><div class="k">Cookies / DNT</div><div class="v">${escapeHtml(dev.cookies || '—')} / ${escapeHtml(dev.doNotTrack || '—')}</div></div>
+        <div class="data-cell"><div class="k">Pixel Ratio</div><div class="v">${dev.pixelRatio || '—'}</div></div>
+        <div class="data-cell"><div class="k">Color Depth</div><div class="v">${dev.colorDepth || '—'} bit</div></div>
+        <div class="data-cell"><div class="k">Vendor</div><div class="v">${escapeHtml(dev.vendor || '—')}</div></div>
+        <div class="data-cell"><div class="k">Анкет / Ботов / Ответов</div><div class="v">${surveysCount} / ${botsCount} / ${responsesCount}</div></div>
+        <div class="data-cell full"><div class="k">User-Agent</div><div class="v" style="font-size:10px">${escapeHtml(dev.ua || '—')}</div></div>
+        <div class="data-cell full"><div class="k">URL входа / Referrer</div><div class="v" style="font-size:10px">${escapeHtml(dev.url || '—')} / ${escapeHtml(dev.referrer || '—')}</div></div>
+        ${u.lastDevice ? `<div class="data-cell full"><div class="k">Устройство последнего входа</div><div class="v" style="font-size:10px">${escapeHtml(lastDev.ua || '—')}</div></div>` : ''}
+      </div>
+      <div class="user-actions">
+        ${u.banned
+                        ? `<button class="btn success small" onclick="unbanUser('${u.id}')">✓ Разбанить</button>`
+                        : `<button class="btn warn small" onclick="banUser('${u.id}')">⚠ Забанить</button>`}
+        <button class="btn small" onclick="openEditModal('${u.id}')">✎ Редактировать</button>
+        <button class="btn danger small" onclick="deleteUser('${u.id}')">✕ Удалить</button>
+      </div>
+    `;
+                box.appendChild(card);
+            });
+        }
+
+        function banUser(id) {
+            const u = currentUsers.find(x => x.id === id);
+            if (!u) return;
+            if (!confirm(`Забанить субъекта «${u.name}»?\nЕго анкеты исчезнут из публичного доступа.`)) return;
+            u.banned = true;
+            u.bannedAt = Date.now();
+            saveAll();
+            refreshData();
+        }
+
+        function unbanUser(id) {
+            const u = currentUsers.find(x => x.id === id);
+            if (!u) return;
+            u.banned = false;
+            delete u.bannedAt;
+            saveAll();
+            refreshData();
+        }
+
+        function deleteUser(id) {
+            const u = currentUsers.find(x => x.id === id);
+            if (!u) return;
+            if (!confirm(`УДАЛИТЬ субъекта «${u.name}»?\nВсе его анкеты, боты и ответы будут уничтожены безвозвратно.`)) return;
+            const userSurveyIds = currentSurveys.filter(s => s.ownerId === id).map(s => s.id);
+            const userBotIds = currentBots.filter(b => b.ownerId === id).map(b => b.id);
+            currentSurveys = currentSurveys.filter(s => s.ownerId !== id);
+            currentBots = currentBots.filter(b => b.ownerId !== id);
+            currentResponses = currentResponses.filter(r => !userSurveyIds.includes(r.surveyId) && !userBotIds.includes(r.botId));
+            currentUsers = currentUsers.filter(x => x.id !== id);
+            saveAll();
+            refreshData();
+        }
+
+        function openEditModal(id) {
+            const u = currentUsers.find(x => x.id === id);
+            if (!u) return;
+            editingUserId = id;
+            document.getElementById('editName').value = u.name || '';
+            document.getElementById('editPassword').value = '';
+            document.getElementById('editAvatar').value = u.avatar || '';
+            document.getElementById('editModal').classList.add('show');
+        }
+        function closeEditModal() {
+            editingUserId = null;
+            document.getElementById('editModal').classList.remove('show');
+        }
+        function saveUserEdit() {
+            const u = currentUsers.find(x => x.id === editingUserId);
+            if (!u) return;
+            const name = document.getElementById('editName').value.trim();
+            const pass = document.getElementById('editPassword').value;
+            const avatar = document.getElementById('editAvatar').value.trim();
+            if (!name) return alert('Имя не может быть пустым');
+            if (currentUsers.some(x => x.id !== u.id && (x.name || '').toLowerCase() === name.toLowerCase())) {
+                return alert('Имя уже занято');
+            }
+            u.name = name;
+            if (pass) u.password = pass;
+            u.avatar = avatar;
+            saveAll();
+            closeEditModal();
+            refreshData();
+        }
+
+        function renderDevices() {
+            const box = document.getElementById('devicesBox');
+            const map = {};
+            currentUsers.forEach(u => {
+                const id = u.deviceId || 'unknown';
+                if (!map[id]) map[id] = { id, users: [], device: u.device || {} };
+                map[id].users.push(u);
+            });
+            const ids = Object.keys(map);
+            if (!ids.length) { box.innerHTML = '<div class="empty">▸ Нет данных о терминалах</div>'; return; }
+            box.innerHTML = '';
+            ids.sort((a, b) => map[b].users.length - map[a].users.length).forEach(id => {
+                const g = map[id];
+                const dev = g.device || {};
+                const card = document.createElement('div');
+                card.className = 'device-block';
+                card.innerHTML = `
+      <div class="device-header">
+        <div class="device-icon">▣</div>
+        <div style="flex:1;min-width:0">
+          <div class="device-id">${escapeHtml(id)}</div>
+          <div class="user-meta">Аккаунтов: <b>${g.users.length}</b> • ${escapeHtml(dev.platform || '—')} • ${escapeHtml(dev.screen || '—')}</div>
+        </div>
+      </div>
+      <div class="device-accounts">
+        ${g.users.map(u => `<span class="account-pill${u.banned ? ' banned' : ''}">${escapeHtml(u.name)}${u.banned ? ' ⊘' : ''}</span>`).join('')}
+      </div>
+      <div class="data-grid" style="margin-top:8px">
+        <div class="data-cell"><div class="k">Timezone</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
+        <div class="data-cell"><div class="k">Язык</div><div class="v">${escapeHtml(dev.language || '—')}</div></div>
+        <div class="data-cell"><div class="k">CPU</div><div class="v">${dev.cores || '—'}</div></div>
+        <div class="data-cell"><div class="k">Touch</div><div class="v">${escapeHtml(dev.touch || '—')}</div></div>
+      </div>
+    `;
+                box.appendChild(card);
+            });
+        }
+
+        function renderSystemSummary() {
+            const box = document.getElementById('systemSummary');
+            const totalResponses = currentResponses.length;
+            const publicResponses = currentResponses.filter(r => r.source === 'public').length;
+            const botResponses = currentResponses.filter(r => r.source === 'bot').length;
+            const topSurveys = currentSurveys.map(s => ({
+                title: s.title,
+                count: currentResponses.filter(r => r.surveyId === s.id).length,
+                owner: currentUsers.find(u => u.id === s.ownerId)?.name || '—',
+                banned: currentUsers.find(u => u.id === s.ownerId)?.banned
+            })).sort((a, b) => b.count - a.count).slice(0, 5);
+
+            box.innerHTML = `
+    <div class="metrics-row" style="margin-bottom:16px">
+      <div class="metric"><div class="lbl">Всего ответов</div><div class="val">${totalResponses}</div></div>
+      <div class="metric"><div class="lbl">От людей</div><div class="val" style="color:var(--blue)">${publicResponses}</div></div>
+      <div class="metric"><div class="lbl">От ботов</div><div class="val">${botResponses}</div></div>
+    </div>
+    <div class="panel-title" style="margin-bottom:10px"><span class="marker">▸</span>Топ-5 анкет</div>
+    <div class="top-surveys">
+      ${topSurveys.length ? topSurveys.map(s => `
+        <div class="top-survey-row">
+          <div>
+            <div class="top-survey-title">${escapeHtml(s.title)}</div>
+            <div class="top-survey-owner">автор: ${escapeHtml(s.owner)}${s.banned ? ' ⊘' : ''}</div>
+          </div>
+          <div class="top-survey-count">${s.count}</div>
+        </div>
+      `).join('') : '<div class="empty">▸ Нет данных</div>'}
     </div>
   `;
-}
+        }
 
-if (localStorage.getItem(SA_SESSION) === '1') {
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('appScreen').style.display = 'block';
-  refreshData();
-}
+        document.getElementById('saPassword').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') saLogin();
+        });
+        document.getElementById('saLogin').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('saPassword').focus();
+        });
 
-setInterval(() => {
-  if (localStorage.getItem(SA_SESSION) === '1') refreshData();
-}, 3000);
-</script>
+        if (localStorage.getItem(SA_SESSION) === '1') {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            refreshData();
+        }
+
+        setInterval(() => {
+            if (localStorage.getItem(SA_SESSION) === '1') refreshData();
+        }, 2000);
+    </script>
 </body>
+
 </html>

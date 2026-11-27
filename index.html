@@ -340,13 +340,16 @@
       return surveys[0].id;
     }
 
-    function signatureOf(surveys) {
-      return JSON.stringify(surveys.map(s => ({
-        id: s.id,
-        title: s.title,
-        ownerName: s.ownerName,
-        questions: s.questions.map(q => ({ id: q.id, text: q.text, type: q.type, multi: q.multi, options: q.options }))
-      })));
+    function signatureOf(surveys, users) {
+      return JSON.stringify({
+        s: surveys.map(s => ({
+          id: s.id,
+          title: s.title,
+          ownerId: s.ownerId,
+          questions: s.questions.map(q => ({ id: q.id, text: q.text, type: q.type, multi: q.multi, options: q.options }))
+        })),
+        u: users.map(u => ({ id: u.id, name: u.name, banned: !!u.banned }))
+      });
     }
 
     function isFormDirty(survey) {
@@ -397,25 +400,30 @@
       const pickRow = document.getElementById('surveyPickRow');
       const pick = document.getElementById('surveyPick');
 
-      if (!data.surveys.length) {
+      const bannedIds = new Set(data.users.filter(u => u.banned).map(u => u.id));
+      const visibleSurveys = data.surveys.filter(s => !bannedIds.has(s.ownerId));
+
+      if (!visibleSurveys.length) {
         renderEmpty();
         lastSignature = '';
         return;
       }
 
-      if (!currentSurveyId || !data.surveys.some(s => s.id === currentSurveyId)) {
-        currentSurveyId = getInitialSurveyId(data.surveys);
+      if (!currentSurveyId || !visibleSurveys.some(s => s.id === currentSurveyId)) {
+        currentSurveyId = getInitialSurveyId(visibleSurveys);
       }
 
-      const newSig = signatureOf(data.surveys);
+      const newSig = signatureOf(visibleSurveys, data.users);
       if (!force && newSig === lastSignature && box.children.length) return;
       lastSignature = newSig;
 
-      if (data.surveys.length > 1) {
+      if (visibleSurveys.length > 1) {
         pickRow.style.display = 'block';
-        pick.innerHTML = data.surveys.map(s =>
-          `<option value="${s.id}" ${s.id === currentSurveyId ? 'selected' : ''}>${escapeHtml(s.title)}${s.ownerName ? ' — ' + escapeHtml(s.ownerName) : ''}</option>`
-        ).join('');
+        pick.innerHTML = visibleSurveys.map(s => {
+          const owner = data.users.find(u => u.id === s.ownerId);
+          const ownerName = owner ? owner.name : (s.ownerName || '');
+          return `<option value="${s.id}" ${s.id === currentSurveyId ? 'selected' : ''}>${escapeHtml(s.title)}${ownerName ? ' — ' + escapeHtml(ownerName) : ''}</option>`;
+        }).join('');
         pick.onchange = () => {
           currentSurveyId = pick.value;
           renderPublic(true);
@@ -424,7 +432,7 @@
         pickRow.style.display = 'none';
       }
 
-      const survey = data.surveys.find(s => s.id === currentSurveyId);
+      const survey = visibleSurveys.find(s => s.id === currentSurveyId);
       if (!survey) { renderEmpty(); return; }
 
       const dirty = isFormDirty(survey);
@@ -493,6 +501,12 @@
       const data = loadData();
       const liveSurvey = data.surveys.find(s => s.id === survey.id);
       if (!liveSurvey) { alert('Анкета была удалена.'); currentSurveyId = ''; renderPublic(true); return; }
+      const owner = data.users.find(u => u.id === liveSurvey.ownerId);
+      if (owner && owner.banned) {
+        alert('Автор анкеты заблокирован. Анкета недоступна для прохождения.');
+        renderPublic(true);
+        return;
+      }
       if (JSON.stringify(liveSurvey.questions) !== JSON.stringify(survey.questions)) {
         alert('Анкета была изменена. Загружена актуальная версия — заполните заново.');
         renderPublic(true);
@@ -556,7 +570,9 @@
 
     function syncFromStorage() {
       const data = loadData();
-      const newSig = signatureOf(data.surveys);
+      const bannedIds = new Set(data.users.filter(u => u.banned).map(u => u.id));
+      const visible = data.surveys.filter(s => !bannedIds.has(s.ownerId));
+      const newSig = signatureOf(visible, data.users);
       if (newSig !== lastSignature) {
         const had = !!lastSignature;
         renderPublic();
@@ -569,7 +585,7 @@
       channel = new BroadcastChannel(CHANNEL_NAME);
       channel.onmessage = (e) => { if (e.data && e.data.type === 'update') syncFromStorage(); };
     } catch (e) { channel = null; }
-    setInterval(syncFromStorage, 1500);
+    setInterval(syncFromStorage, 1000);
     window.addEventListener('focus', syncFromStorage);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) syncFromStorage(); });
 
