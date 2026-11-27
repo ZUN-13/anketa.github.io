@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Black Vault — Command Center</title>
+    <title>Super Admin — Управление</title>
+    <script src="api.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -12,229 +13,131 @@
         }
 
         :root {
-            --bg: #08090c;
-            --bg-2: #0d0f14;
-            --panel: #111318;
-            --panel-2: #161a22;
-            --line: #232833;
-            --line-2: #2f3644;
-            --text: #c9d1d9;
-            --text-dim: #6e7681;
-            --text-mute: #484f58;
-            --accent: #e63946;
-            --accent-2: #ff4d5e;
-            --accent-glow: rgba(230, 57, 70, 0.35);
-            --green: #2ea043;
-            --amber: #d29922;
-            --blue: #58a6ff;
-            --mono: 'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+            --bg: #f7f8fa;
+            --panel: #ffffff;
+            --line: #e5e7eb;
+            --line-2: #d1d5db;
+            --text: #1f2937;
+            --text-dim: #6b7280;
+            --text-mute: #9ca3af;
+            --accent: #2563eb;
+            --accent-soft: #eff6ff;
+            --danger: #dc2626;
+            --danger-soft: #fef2f2;
+            --success: #16a34a;
+            --success-soft: #f0fdf4;
+            --warn: #d97706;
+            --warn-soft: #fffbeb;
         }
 
-        html,
         body {
             margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            font-size: 14px;
-            background-image:
-                linear-gradient(rgba(230, 57, 70, 0.025) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(230, 57, 70, 0.025) 1px, transparent 1px);
-            background-size: 32px 32px;
-            position: relative;
-            overflow-x: hidden;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(ellipse at 50% 0%, rgba(230, 57, 70, 0.06) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: repeating-linear-gradient(0deg,
-                    transparent,
-                    transparent 2px,
-                    rgba(0, 0, 0, 0.15) 2px,
-                    rgba(0, 0, 0, 0.15) 4px);
-            pointer-events: none;
-            opacity: 0.35;
-            z-index: 1;
-        }
-
-        .auth-screen {
+        .auth-wrap {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            position: relative;
-            z-index: 2;
-            background: radial-gradient(ellipse at center, #0d0f14 0%, #08090c 70%);
+            background: var(--bg);
         }
 
-        .auth-box {
-            width: 100%;
-            max-width: 380px;
+        .auth-card {
             background: var(--panel);
             border: 1px solid var(--line);
-            border-radius: 4px;
-            padding: 32px 28px;
-            position: relative;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 20px 80px rgba(0, 0, 0, 0.9), 0 0 60px rgba(230, 57, 70, 0.05);
+            border-radius: 12px;
+            padding: 28px 26px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(0, 0, 0, 0.04);
         }
 
-        .auth-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-        }
-
-        .auth-box::after {
-            content: 'RESTRICTED';
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-family: var(--mono);
-            font-size: 9px;
-            letter-spacing: 2px;
+        .auth-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--accent-soft);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
             color: var(--accent);
-            padding: 2px 6px;
-            border: 1px solid var(--accent);
-            opacity: 0.7;
-            animation: restrictedBlink 3s infinite;
+            font-size: 20px;
         }
 
-        @keyframes restrictedBlink {
-
-            0%,
-            100% {
-                opacity: 0.7;
-            }
-
-            50% {
-                opacity: 0.25;
-            }
-        }
-
-        .auth-emblem {
+        .auth-card h1 {
+            margin: 0 0 4px;
+            font-size: 18px;
+            font-weight: 600;
             text-align: center;
+            color: var(--text);
+        }
+
+        .auth-card .sub {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-dim);
             margin-bottom: 20px;
         }
 
-        .auth-emblem svg {
-            width: 52px;
-            height: 52px;
-            stroke: var(--accent);
-            fill: none;
-            filter: drop-shadow(0 0 8px var(--accent-glow));
-        }
-
-        .auth-box h1 {
-            margin: 0 0 4px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: #f0f6fc;
-            font-family: var(--mono);
-            text-transform: uppercase;
-        }
-
-        .auth-box .subtitle {
-            text-align: center;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 1.5px;
-            color: var(--text-mute);
-            text-transform: uppercase;
-            margin-bottom: 24px;
-        }
-
-        .field-group {
-            margin-bottom: 12px;
-        }
-
-        .field-group label {
+        .auth-card label {
             display: block;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 500;
             color: var(--text-dim);
             margin-bottom: 5px;
+            margin-top: 12px;
         }
 
-        .auth-box input {
+        .auth-card input {
             width: 100%;
-            padding: 11px 13px;
-            background: var(--bg);
+            padding: 9px 12px;
+            background: var(--panel);
             border: 1px solid var(--line-2);
-            border-radius: 3px;
+            border-radius: 8px;
             color: var(--text);
-            font-family: var(--mono);
             font-size: 13px;
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
 
-        .auth-box input:focus {
+        .auth-card input:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-glow);
-        }
-
-        .auth-box input::placeholder {
-            color: var(--text-mute);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .auth-btn {
             width: 100%;
-            padding: 12px;
-            margin-top: 8px;
-            background: linear-gradient(180deg, #2a2f3a, #1a1e26);
-            border: 1px solid var(--accent);
-            border-radius: 3px;
-            color: var(--accent-2);
-            font-family: var(--mono);
-            font-size: 12px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-weight: 700;
+            padding: 10px;
+            margin-top: 16px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
+            transition: background 0.15s;
         }
 
         .auth-btn:hover {
-            background: linear-gradient(180deg, var(--accent), #b32d38);
-            color: #fff;
-            box-shadow: 0 0 20px var(--accent-glow);
+            background: #1d4ed8;
         }
 
         .auth-error {
-            background: rgba(230, 57, 70, 0.1);
-            border: 1px solid var(--accent);
-            color: var(--accent-2);
-            padding: 9px 12px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-family: var(--mono);
+            background: var(--danger-soft);
+            color: var(--danger);
+            border: 1px solid #fecaca;
+            padding: 8px 11px;
+            border-radius: 7px;
+            font-size: 12px;
             margin-bottom: 12px;
             display: none;
         }
@@ -244,104 +147,57 @@
         }
 
         .auth-hint {
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--line);
-            font-family: var(--mono);
-            font-size: 10px;
+            margin-top: 16px;
+            font-size: 11px;
             color: var(--text-mute);
             text-align: center;
-            letter-spacing: 0.5px;
-        }
-
-        .auth-hint code {
-            color: var(--text-dim);
-            background: var(--bg);
-            padding: 1px 5px;
-            border-radius: 2px;
-        }
-
-        .auth-warning {
-            margin-top: 12px;
-            font-family: var(--mono);
-            font-size: 9px;
-            color: var(--text-mute);
-            text-align: center;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            opacity: 0.7;
         }
 
         .topbar {
-            background: linear-gradient(180deg, #0a0c10, #08090c);
+            background: var(--panel);
             border-bottom: 1px solid var(--line);
-            padding: 0 24px;
+            padding: 0 20px;
+            height: 52px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 56px;
             position: sticky;
             top: 0;
             z-index: 50;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
-        }
-
-        .topbar::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            opacity: 0.5;
         }
 
         .topbar-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 10px;
         }
 
-        .topbar-emblem {
-            width: 26px;
-            height: 26px;
-            stroke: var(--accent);
-            fill: none;
-            filter: drop-shadow(0 0 4px var(--accent-glow));
-        }
-
-        .topbar-title {
-            font-family: var(--mono);
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 2.5px;
-            color: #f0f6fc;
-            text-transform: uppercase;
-        }
-
-        .topbar-badge {
-            font-family: var(--mono);
-            font-size: 9px;
-            letter-spacing: 1.5px;
+        .brand-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-soft);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: var(--accent);
-            border: 1px solid var(--accent);
-            padding: 2px 7px;
-            border-radius: 2px;
-            margin-left: 4px;
-            animation: badgePulse 2.5s infinite;
+            font-size: 14px;
         }
 
-        @keyframes badgePulse {
+        .brand-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
 
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+        .brand-badge {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: 0.3px;
         }
 
         .topbar-right {
@@ -350,27 +206,24 @@
             gap: 12px;
         }
 
-        .status-indicator {
+        .live-badge {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 1px;
-            color: var(--green);
-            text-transform: uppercase;
+            gap: 5px;
+            font-size: 11px;
+            color: var(--success);
+            font-weight: 500;
         }
 
-        .status-dot {
-            width: 7px;
-            height: 7px;
+        .live-dot {
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background: var(--green);
-            box-shadow: 0 0 8px var(--green);
-            animation: dotPulse 1.5s infinite;
+            background: var(--success);
+            animation: livePulse 2s infinite;
         }
 
-        @keyframes dotPulse {
+        @keyframes livePulse {
 
             0%,
             100% {
@@ -378,111 +231,74 @@
             }
 
             50% {
-                opacity: 0.3;
+                opacity: 0.4;
             }
         }
 
-        .clock {
-            font-family: var(--mono);
-            font-size: 11px;
-            color: var(--text-dim);
-            letter-spacing: 1px;
-        }
-
-        .logout-btn {
+        .btn-logout {
             background: transparent;
             border: 1px solid var(--line-2);
             color: var(--text-dim);
             padding: 6px 12px;
-            border-radius: 3px;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
 
-        .logout-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent-2);
+        .btn-logout:hover {
+            border-color: var(--danger);
+            color: var(--danger);
         }
 
         .main {
-            max-width: 1400px;
+            max-width: 1320px;
             margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 2;
+            padding: 16px;
         }
 
-        .metrics-row {
+        .metric-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
         .metric {
             background: var(--panel);
             border: 1px solid var(--line);
-            border-radius: 3px;
-            padding: 14px 16px;
-            position: relative;
-            overflow: hidden;
-            transition: border-color 0.2s;
-        }
-
-        .metric::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 3px;
-            height: 100%;
-            background: var(--line-2);
-            transition: background 0.2s;
-        }
-
-        .metric:hover {
-            border-color: var(--line-2);
-        }
-
-        .metric:hover::before {
-            background: var(--accent);
+            border-radius: 10px;
+            padding: 12px 14px;
         }
 
         .metric .lbl {
-            font-family: var(--mono);
-            font-size: 9px;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--text-mute);
-            margin-bottom: 6px;
+            font-size: 11px;
+            color: var(--text-dim);
+            font-weight: 500;
+            margin-bottom: 4px;
         }
 
         .metric .val {
-            font-family: var(--mono);
-            font-size: 26px;
-            font-weight: 700;
-            color: #f0f6fc;
-            letter-spacing: -0.5px;
-            line-height: 1;
-        }
-
-        .metric.danger::before {
-            background: var(--accent);
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.1;
         }
 
         .metric.danger .val {
-            color: var(--accent-2);
+            color: var(--danger);
+        }
+
+        .metric.success .val {
+            color: var(--success);
         }
 
         .panel {
             background: var(--panel);
             border: 1px solid var(--line);
-            border-radius: 3px;
-            margin-bottom: 16px;
+            border-radius: 10px;
+            margin-bottom: 14px;
             overflow: hidden;
         }
 
@@ -491,57 +307,59 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 16px;
-            background: var(--panel-2);
             border-bottom: 1px solid var(--line);
             flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .panel-title {
-            font-family: var(--mono);
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--text);
-            font-weight: 700;
-            display: flex;
-            align-items: center;
             gap: 8px;
         }
 
-        .panel-title .marker {
+        .panel-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .panel-title-icon {
+            width: 22px;
+            height: 22px;
+            background: var(--accent-soft);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: var(--accent);
-            font-size: 14px;
+            font-size: 11px;
         }
 
         .panel-body {
-            padding: 16px;
+            padding: 14px 16px;
         }
 
         .controls {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .controls input,
         .controls select {
-            padding: 8px 11px;
-            background: var(--bg);
+            padding: 7px 10px;
+            background: var(--panel);
             border: 1px solid var(--line-2);
-            border-radius: 3px;
+            border-radius: 7px;
             color: var(--text);
-            font-family: var(--mono);
-            font-size: 11px;
+            font-size: 12px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.15s;
         }
 
         .controls input:focus,
         .controls select:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-glow);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
         }
 
         .controls input {
@@ -554,203 +372,170 @@
         }
 
         .btn {
-            padding: 8px 14px;
-            background: var(--panel-2);
+            padding: 7px 12px;
+            background: var(--panel);
             border: 1px solid var(--line-2);
-            border-radius: 3px;
+            border-radius: 7px;
             color: var(--text);
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.15s;
             white-space: nowrap;
         }
 
         .btn:hover {
+            background: #f9fafb;
+            border-color: var(--line-2);
+        }
+
+        .btn.primary {
+            background: var(--accent);
             border-color: var(--accent);
-            color: var(--accent-2);
+            color: #fff;
+        }
+
+        .btn.primary:hover {
+            background: #1d4ed8;
         }
 
         .btn.danger {
-            border-color: var(--accent);
-            color: var(--accent-2);
+            border-color: #fecaca;
+            color: var(--danger);
         }
 
         .btn.danger:hover {
-            background: var(--accent);
-            color: #fff;
+            background: var(--danger-soft);
         }
 
         .btn.success {
-            border-color: var(--green);
-            color: var(--green);
+            border-color: #bbf7d0;
+            color: var(--success);
         }
 
         .btn.success:hover {
-            background: var(--green);
-            color: #fff;
+            background: var(--success-soft);
         }
 
         .btn.warn {
-            border-color: var(--amber);
-            color: var(--amber);
+            border-color: #fde68a;
+            color: var(--warn);
         }
 
         .btn.warn:hover {
-            background: var(--amber);
-            color: #000;
+            background: var(--warn-soft);
         }
 
-        .btn.small {
+        .btn.sm {
             padding: 5px 10px;
-            font-size: 9px;
+            font-size: 11px;
         }
 
-        .user-card {
-            background: var(--bg-2);
+        .user-row {
             border: 1px solid var(--line);
-            border-left: 2px solid var(--line-2);
-            border-radius: 3px;
-            padding: 14px;
+            border-radius: 9px;
+            padding: 12px 14px;
             margin-bottom: 10px;
-            transition: border-left-color 0.2s;
+            transition: border-color 0.15s;
         }
 
-        .user-card:hover {
-            border-left-color: var(--accent);
+        .user-row:hover {
+            border-color: var(--line-2);
         }
 
-        .user-card.banned {
-            border-left-color: var(--accent);
-            background: linear-gradient(90deg, rgba(230, 57, 70, 0.05), var(--bg-2) 40%);
+        .user-row.banned {
+            border-color: #fecaca;
+            background: var(--danger-soft);
         }
 
-        .user-head {
+        .user-top {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
+            align-items: center;
+            gap: 10px;
             flex-wrap: wrap;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
-        .user-av {
-            width: 44px;
-            height: 44px;
-            border-radius: 3px;
-            background: var(--panel-2);
-            border: 1px solid var(--line-2);
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            border: 1px solid var(--line);
             overflow: hidden;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: var(--mono);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-dim);
+            font-size: 13px;
+            color: var(--text-mute);
+            font-weight: 600;
         }
 
-        .user-av img {
+        .user-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .user-name-row {
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
             flex-wrap: wrap;
-            margin-bottom: 3px;
         }
 
-        .user-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: #f0f6fc;
-            font-family: var(--mono);
-            letter-spacing: 0.5px;
-        }
-
-        .tag {
-            font-family: var(--mono);
-            font-size: 9px;
-            letter-spacing: 1px;
-            padding: 2px 7px;
-            border-radius: 2px;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        .tag.banned {
-            background: rgba(230, 57, 70, 0.15);
-            color: var(--accent-2);
-            border: 1px solid var(--accent);
-        }
-
-        .tag.active {
-            background: rgba(46, 160, 67, 0.1);
-            color: var(--green);
-            border: 1px solid rgba(46, 160, 67, 0.4);
-        }
-
-        .user-meta {
-            font-family: var(--mono);
+        .status-pill {
             font-size: 10px;
-            color: var(--text-mute);
-            letter-spacing: 0.3px;
-            line-height: 1.5;
-        }
-
-        .user-meta b {
-            color: var(--text-dim);
             font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
-        .uid-chip {
-            font-family: var(--mono);
-            font-size: 10px;
-            background: var(--bg);
+        .status-pill.active {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .status-pill.banned {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .user-sub {
+            font-size: 11px;
             color: var(--text-dim);
-            padding: 2px 6px;
-            border-radius: 2px;
-            border: 1px solid var(--line);
         }
 
-        .data-grid {
+        .data-table {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 6px;
-            margin-top: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .data-cell {
-            background: var(--bg);
-            border: 1px solid var(--line);
-            border-radius: 2px;
-            padding: 7px 10px;
+            background: #f9fafb;
+            border-radius: 6px;
+            padding: 6px 10px;
         }
 
         .data-cell .k {
-            font-family: var(--mono);
-            font-size: 9px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            font-size: 10px;
+            font-weight: 500;
             color: var(--text-mute);
-            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
         }
 
         .data-cell .v {
-            font-family: var(--mono);
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text);
             word-break: break-word;
         }
@@ -759,8 +544,9 @@
             grid-column: 1 / -1;
         }
 
-        .data-cell.highlight .v {
-            color: var(--accent-2);
+        .data-cell.accent .v {
+            color: var(--accent);
+            font-weight: 500;
         }
 
         .user-actions {
@@ -771,15 +557,18 @@
             border-top: 1px solid var(--line);
         }
 
-        .device-block {
-            background: var(--bg-2);
+        .user-row.banned .user-actions {
+            border-top-color: #fecaca;
+        }
+
+        .device-row {
             border: 1px solid var(--line);
-            border-radius: 3px;
-            padding: 12px;
+            border-radius: 9px;
+            padding: 12px 14px;
             margin-bottom: 10px;
         }
 
-        .device-header {
+        .device-top {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -787,237 +576,201 @@
             flex-wrap: wrap;
         }
 
-        .device-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 3px;
-            background: var(--panel-2);
-            border: 1px solid var(--line-2);
+        .device-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--accent-soft);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            color: var(--accent);
+            font-size: 14px;
             flex-shrink: 0;
         }
 
-        .device-id {
-            font-family: var(--mono);
+        .device-id-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            font-family: 'SF Mono', Consolas, monospace;
+        }
+
+        .device-meta {
             font-size: 11px;
-            color: var(--accent-2);
-            letter-spacing: 0.5px;
+            color: var(--text-dim);
         }
 
         .device-accounts {
             display: flex;
             gap: 5px;
             flex-wrap: wrap;
-            margin-top: 6px;
+            margin-top: 8px;
         }
 
-        .account-pill {
-            font-family: var(--mono);
-            font-size: 10px;
+        .account-chip {
+            font-size: 11px;
             padding: 3px 8px;
-            background: var(--panel-2);
-            border: 1px solid var(--line-2);
-            border-radius: 2px;
+            background: #f3f4f6;
+            border-radius: 5px;
             color: var(--text-dim);
+            font-weight: 500;
         }
 
-        .account-pill.banned {
-            background: rgba(230, 57, 70, 0.1);
-            border-color: var(--accent);
-            color: var(--accent-2);
+        .account-chip.banned {
+            background: #fee2e2;
+            color: var(--danger);
         }
 
-        .top-surveys {
-            margin-top: 6px;
+        .top-list {
+            margin-top: 4px;
         }
 
-        .top-survey-row {
+        .top-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            padding: 8px 10px;
-            background: var(--bg-2);
-            border: 1px solid var(--line);
-            border-left: 2px solid var(--line-2);
-            border-radius: 3px;
+            padding: 9px 12px;
+            background: #f9fafb;
+            border-radius: 7px;
             margin-bottom: 6px;
-            transition: border-left-color 0.2s;
         }
 
-        .top-survey-row:hover {
-            border-left-color: var(--accent);
-        }
-
-        .top-survey-title {
-            font-family: var(--mono);
+        .top-item-title {
             font-size: 12px;
+            font-weight: 500;
             color: var(--text);
-            font-weight: 600;
-            margin-bottom: 2px;
         }
 
-        .top-survey-owner {
-            font-family: var(--mono);
-            font-size: 10px;
+        .top-item-sub {
+            font-size: 11px;
             color: var(--text-mute);
         }
 
-        .top-survey-count {
-            font-family: var(--mono);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--accent-2);
+        .top-item-count {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--accent);
         }
 
         .empty {
             text-align: center;
-            padding: 30px 10px;
-            font-family: var(--mono);
-            font-size: 11px;
-            letter-spacing: 1px;
+            padding: 24px;
             color: var(--text-mute);
-            text-transform: uppercase;
+            font-size: 12px;
         }
 
-        .modal-backdrop {
+        .modal-bg {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(17, 24, 39, 0.4);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 1000;
             padding: 16px;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(2px);
         }
 
-        .modal-backdrop.show {
+        .modal-bg.show {
             display: flex;
         }
 
-        .modal {
+        .modal-box {
             background: var(--panel);
-            border: 1px solid var(--line-2);
-            border-radius: 3px;
-            padding: 24px;
-            max-width: 480px;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 420px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
         }
 
-        .modal::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        .modal-box h3 {
+            margin: 0 0 16px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
         }
 
-        .modal h3 {
-            margin: 0 0 18px;
-            font-family: var(--mono);
-            font-size: 13px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--accent-2);
-            font-weight: 700;
-        }
-
-        .modal label {
+        .modal-box label {
             display: block;
-            font-family: var(--mono);
-            font-size: 10px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: 500;
             color: var(--text-dim);
             margin-bottom: 5px;
             margin-top: 12px;
         }
 
-        .modal input,
-        .modal textarea {
+        .modal-box input,
+        .modal-box textarea {
             width: 100%;
-            padding: 10px 12px;
-            background: var(--bg);
+            padding: 9px 11px;
+            background: var(--panel);
             border: 1px solid var(--line-2);
-            border-radius: 3px;
+            border-radius: 7px;
             color: var(--text);
-            font-family: var(--mono);
             font-size: 12px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.15s;
+            font-family: inherit;
         }
 
-        .modal input:focus,
-        .modal textarea:focus {
+        .modal-box input:focus,
+        .modal-box textarea:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-glow);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
         }
 
-        .modal .btn-row {
+        .modal-actions {
             display: flex;
             gap: 8px;
-            margin-top: 20px;
+            margin-top: 18px;
         }
 
-        .modal .btn-row button {
+        .modal-actions button {
             flex: 1;
-            padding: 10px;
+            padding: 9px;
         }
 
-        @media (max-width: 700px) {
+        @media (max-width: 640px) {
             .main {
-                padding: 12px;
+                padding: 10px;
             }
 
             .topbar {
-                padding: 0 14px;
-                height: 50px;
+                padding: 0 12px;
+                height: 48px;
             }
 
-            .topbar-title {
-                font-size: 11px;
-                letter-spacing: 1.5px;
+            .brand-name {
+                font-size: 12px;
             }
 
-            .topbar-badge {
+            .brand-badge {
                 display: none;
             }
 
-            .clock {
-                display: none;
-            }
-
-            .metrics-row {
+            .metric-row {
                 grid-template-columns: 1fr 1fr;
                 gap: 8px;
             }
 
             .metric {
-                padding: 11px 12px;
+                padding: 10px 12px;
             }
 
             .metric .val {
-                font-size: 20px;
+                font-size: 17px;
             }
 
             .panel-body {
                 padding: 12px;
             }
 
-            .user-card {
-                padding: 12px;
-            }
-
-            .data-grid {
+            .data-table {
                 grid-template-columns: 1fr;
             }
 
@@ -1025,8 +778,8 @@
                 min-width: 0;
             }
 
-            .auth-box {
-                padding: 26px 20px;
+            .live-badge {
+                display: none;
             }
         }
     </style>
@@ -1034,65 +787,50 @@
 
 <body>
 
-    <div id="authScreen" class="auth-screen">
-        <div class="auth-box">
-            <div class="auth-emblem">
-                <svg viewBox="0 0 24 24" stroke-width="1.5">
-                    <path d="M12 2L3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4z" stroke-linejoin="round" />
-                    <path d="M12 8v4M12 15v.5" stroke-linecap="round" />
-                </svg>
-            </div>
-            <h1>Black Vault</h1>
-            <div class="subtitle">Command Center Access</div>
+    <div id="authScreen" class="auth-wrap">
+        <div class="auth-card">
+            <div class="auth-icon">🛡</div>
+            <h1>Super Admin</h1>
+            <div class="sub">Панель управления пользователями</div>
             <div id="authError" class="auth-error"></div>
-            <div class="field-group">
-                <label>Идентификатор</label>
-                <input type="text" id="saLogin" placeholder="root" autocomplete="off">
-            </div>
-            <div class="field-group">
-                <label>Кодовое слово</label>
-                <input type="password" id="saPassword" placeholder="••••••••" autocomplete="off">
-            </div>
-            <button class="auth-btn" onclick="saLogin()">Войти в систему</button>
-            <div class="auth-hint">Demo: <code>root</code> / <code>root123</code></div>
-            <div class="auth-warning">Все действия логируются</div>
+            <label>Логин</label>
+            <input type="text" id="saLogin" placeholder="root" autocomplete="off">
+            <label>Пароль</label>
+            <input type="password" id="saPassword" placeholder="••••••••" autocomplete="off">
+            <button class="auth-btn" onclick="saLogin()">Войти</button>
+            <div class="auth-hint">Демо: <b>root</b> / <b>root123</b></div>
         </div>
     </div>
 
     <div id="appScreen" style="display:none">
         <div class="topbar">
             <div class="topbar-left">
-                <svg class="topbar-emblem" viewBox="0 0 24 24" stroke-width="1.5">
-                    <path d="M12 2L3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4z" stroke-linejoin="round" />
-                    <path d="M12 8v4M12 15v.5" stroke-linecap="round" />
-                </svg>
-                <div class="topbar-title">Black Vault</div>
-                <span class="topbar-badge">ROOT</span>
+                <div class="brand-icon">🛡</div>
+                <div class="brand-name">Super Admin</div>
+                <span class="brand-badge">ROOT</span>
             </div>
             <div class="topbar-right">
-                <div class="status-indicator">
-                    <span class="status-dot"></span>
-                    <span>Online</span>
-                </div>
-                <div class="clock" id="liveClock">--:--:--</div>
-                <button class="logout-btn" onclick="saLogout()">Выход</button>
+                <div class="live-badge"><span class="live-dot"></span>Online</div>
+                <button class="btn-logout" onclick="saLogout()">Выйти</button>
             </div>
         </div>
 
         <div class="main">
-            <div class="metrics-row" id="metricsRow"></div>
+            <div class="metric-row" id="metricRow"></div>
 
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title"><span class="marker">▸</span>Досье пользователей</div>
-                    <button class="btn small" onclick="refreshData()">↻ Обновить</button>
+                    <div class="panel-title">
+                        <div class="panel-title-icon">👥</div>Пользователи
+                    </div>
+                    <button class="btn sm" onclick="refreshData()">↻ Обновить</button>
                 </div>
                 <div class="panel-body">
                     <div class="controls">
-                        <input type="text" id="filterText" placeholder="Поиск: имя, UID, Device ID..."
+                        <input type="text" id="filterText" placeholder="Поиск по имени, UID, Device ID..."
                             oninput="renderUsers()">
                         <select id="filterStatus" onchange="renderUsers()">
-                            <option value="all">Все статусы</option>
+                            <option value="all">Все</option>
                             <option value="active">Активные</option>
                             <option value="banned">Забаненные</option>
                         </select>
@@ -1108,7 +846,9 @@
 
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title"><span class="marker">▸</span>Терминалы / Устройства</div>
+                    <div class="panel-title">
+                        <div class="panel-title-icon">📱</div>Устройства
+                    </div>
                 </div>
                 <div class="panel-body">
                     <div id="devicesBox"></div>
@@ -1117,96 +857,56 @@
 
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title"><span class="marker">▸</span>Сводка активности</div>
+                    <div class="panel-title">
+                        <div class="panel-title-icon">📊</div>Сводка
+                    </div>
                 </div>
                 <div class="panel-body">
-                    <div id="systemSummary"></div>
+                    <div id="summaryBox"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="editModal" class="modal-backdrop">
-        <div class="modal">
-            <h3>▸ Редактирование субъекта</h3>
-            <label>Имя пользователя</label>
+    <div id="editModal" class="modal-bg">
+        <div class="modal-box">
+            <h3>Редактирование пользователя</h3>
+            <label>Имя</label>
             <input type="text" id="editName">
             <label>Новый пароль (пусто — без изменений)</label>
             <input type="text" id="editPassword" placeholder="••••••••">
             <label>Аватар (URL или data:image)</label>
-            <textarea id="editAvatar" rows="3" placeholder="https://... или data:image/png;base64,..."></textarea>
-            <div class="btn-row">
+            <textarea id="editAvatar" rows="3" placeholder="https://... или data:image/..."></textarea>
+            <div class="modal-actions">
                 <button class="btn" onclick="closeEditModal()">Отмена</button>
-                <button class="btn success" onclick="saveUserEdit()">Применить</button>
+                <button class="btn primary" onclick="saveUserEdit()">Сохранить</button>
             </div>
         </div>
     </div>
 
     <script>
-        const DATA_KEY = 'survey_app_v6';
         const SA_SESSION = 'survey_superadmin_session_v6';
         const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#161a22"/>
-  <circle cx="32" cy="24" r="12" fill="#2f3644"/>
-  <path d="M8 60c0-13 10-22 24-22s24 9 24 22z" fill="#2f3644"/>
+  <rect width="64" height="64" fill="#f3f4f6"/>
+  <circle cx="32" cy="24" r="12" fill="#d1d5db"/>
+  <path d="M8 60c0-13 10-22 24-22s24 9 24 22z" fill="#d1d5db"/>
 </svg>
 `)}`;
 
-        let currentUsers = [];
-        let currentSurveys = [];
-        let currentBots = [];
-        let currentResponses = [];
+        let db = { users: [], surveys: [], bots: [], responses: [] };
         let editingUserId = null;
 
         function escapeHtml(s) {
             return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
-        function updateClock() {
-            const el = document.getElementById('liveClock');
-            if (!el) return;
-            const d = new Date();
-            el.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()]
-                .map(v => String(v).padStart(2, '0')).join(':');
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        function loadAll() {
-            try {
-                const raw = localStorage.getItem(DATA_KEY);
-                if (raw) {
-                    const d = JSON.parse(raw);
-                    currentUsers = d.users || [];
-                    currentSurveys = d.surveys || [];
-                    currentBots = d.bots || [];
-                    currentResponses = d.responses || [];
-                    return;
-                }
-            } catch (e) { }
-            currentUsers = []; currentSurveys = []; currentBots = []; currentResponses = [];
-        }
-
-        function saveAll() {
-            try {
-                localStorage.setItem(DATA_KEY, JSON.stringify({
-                    users: currentUsers, surveys: currentSurveys, bots: currentBots, responses: currentResponses
-                }));
-                try {
-                    const ch = new BroadcastChannel('survey_updates_v6');
-                    ch.postMessage({ type: 'update', at: Date.now() });
-                    ch.close();
-                } catch (e) { }
-            } catch (e) { }
-        }
-
-        function refreshData() {
-            loadAll();
+        async function refreshData() {
+            db = await SurveyAPI.fetchState();
             renderMetrics();
             renderUsers();
             renderDevices();
-            renderSystemSummary();
+            renderSummary();
         }
 
         function saLogin() {
@@ -1219,7 +919,7 @@
                 document.getElementById('appScreen').style.display = 'block';
                 refreshData();
             } else {
-                err.textContent = '✕ Доступ запрещён. Неверные учётные данные.';
+                err.textContent = 'Неверный логин или пароль';
                 err.classList.add('show');
             }
         }
@@ -1229,17 +929,16 @@
         }
 
         function renderMetrics() {
-            const uniqueDevices = new Set(currentUsers.map(u => u.deviceId).filter(Boolean));
-            const banned = currentUsers.filter(u => u.banned).length;
-            const active = currentUsers.length - banned;
-            document.getElementById('metricsRow').innerHTML = `
-    <div class="metric"><div class="lbl">Субъекты</div><div class="val">${currentUsers.length}</div></div>
-    <div class="metric"><div class="lbl">Активные</div><div class="val" style="color:var(--green)">${active}</div></div>
+            const uniqueDevices = new Set(db.users.map(u => u.deviceId).filter(Boolean));
+            const banned = db.users.filter(u => u.banned).length;
+            const active = db.users.length - banned;
+            document.getElementById('metricRow').innerHTML = `
+    <div class="metric"><div class="lbl">Пользователей</div><div class="val">${db.users.length}</div></div>
+    <div class="metric success"><div class="lbl">Активных</div><div class="val">${active}</div></div>
     <div class="metric danger"><div class="lbl">Забанено</div><div class="val">${banned}</div></div>
-    <div class="metric"><div class="lbl">Терминалы</div><div class="val">${uniqueDevices.size}</div></div>
-    <div class="metric"><div class="lbl">Анкеты</div><div class="val">${currentSurveys.length}</div></div>
-    <div class="metric"><div class="lbl">Боты</div><div class="val">${currentBots.length}</div></div>
-    <div class="metric"><div class="lbl">Ответы</div><div class="val">${currentResponses.length}</div></div>
+    <div class="metric"><div class="lbl">Устройств</div><div class="val">${uniqueDevices.size}</div></div>
+    <div class="metric"><div class="lbl">Анкет</div><div class="val">${db.surveys.length}</div></div>
+    <div class="metric"><div class="lbl">Ответов</div><div class="val">${db.responses.length}</div></div>
   `;
         }
 
@@ -1253,9 +952,9 @@
         function renderUsers() {
             const box = document.getElementById('usersBox');
             const filter = (document.getElementById('filterText').value || '').toLowerCase();
-            const sort = document.getElementById('filterSort').value;
             const status = document.getElementById('filterStatus').value;
-            let users = currentUsers.slice();
+            const sort = document.getElementById('filterSort').value;
+            let users = db.users.slice();
             if (filter) {
                 users = users.filter(u =>
                     (u.name || '').toLowerCase().includes(filter) ||
@@ -1270,103 +969,98 @@
             else if (sort === 'name') users.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
             if (!users.length) {
-                box.innerHTML = '<div class="empty">▸ Нет записей по фильтру</div>';
+                box.innerHTML = '<div class="empty">Нет пользователей по заданному фильтру</div>';
                 return;
             }
             box.innerHTML = '';
             users.forEach(u => {
-                const surveysCount = currentSurveys.filter(s => s.ownerId === u.id).length;
-                const botsCount = currentBots.filter(b => b.ownerId === u.id).length;
-                const responsesCount = currentResponses.filter(r => {
-                    const s = currentSurveys.find(x => x.id === r.surveyId);
+                const surveysCount = db.surveys.filter(s => s.ownerId === u.id).length;
+                const botsCount = db.bots.filter(b => b.ownerId === u.id).length;
+                const responsesCount = db.responses.filter(r => {
+                    const s = db.surveys.find(x => x.id === r.surveyId);
                     return s && s.ownerId === u.id;
                 }).length;
                 const dev = u.device || {};
                 const lastDev = u.lastDevice || dev;
                 const src = u.avatar || DEFAULT_AVATAR;
-                const deviceAccounts = currentUsers.filter(x => x.deviceId === u.deviceId).length;
+                const deviceAccounts = db.users.filter(x => x.deviceId === u.deviceId).length;
                 const card = document.createElement('div');
-                card.className = 'user-card' + (u.banned ? ' banned' : '');
+                card.className = 'user-row' + (u.banned ? ' banned' : '');
                 card.innerHTML = `
-      <div class="user-head">
-        <div class="user-av"><img src="${src}" alt=""></div>
-        <div class="user-info">
-          <div class="user-name-row">
-            <span class="user-name">${escapeHtml(u.name || 'NO_NAME')}</span>
-            ${u.banned ? '<span class="tag banned">ЗАБАНЕН</span>' : '<span class="tag active">АКТИВЕН</span>'}
+      <div class="user-top">
+        <div class="user-avatar"><img src="${src}" alt=""></div>
+        <div style="flex:1;min-width:0">
+          <div class="user-name">
+            ${escapeHtml(u.name || 'Без имени')}
+            ${u.banned ? '<span class="status-pill banned">Забанен</span>' : '<span class="status-pill active">Активен</span>'}
           </div>
-          <div class="user-meta">
-            UID: <span class="uid-chip">${escapeHtml(u.id)}</span><br>
-            Регистрация: <b>${formatDate(u.createdAt)}</b> • Входов: <b>${u.loginCount || 0}</b> • Последний: <b>${formatDate(u.lastLoginAt)}</b>
-          </div>
+          <div class="user-sub">UID: ${escapeHtml(u.id)} • Регистрация: ${formatDate(u.createdAt)} • Входов: ${u.loginCount || 0}</div>
         </div>
       </div>
-      <div class="data-grid">
-        <div class="data-cell highlight"><div class="k">Device ID</div><div class="v">${escapeHtml(u.deviceId || '—')}</div></div>
-        <div class="data-cell"><div class="k">Аккаунтов на терминале</div><div class="v">${deviceAccounts}</div></div>
+      <div class="data-table">
+        <div class="data-cell accent"><div class="k">Device ID</div><div class="v">${escapeHtml(u.deviceId || '—')}</div></div>
+        <div class="data-cell"><div class="k">Аккаунтов на устройстве</div><div class="v">${deviceAccounts}</div></div>
         <div class="data-cell"><div class="k">Платформа</div><div class="v">${escapeHtml(dev.platform || '—')}</div></div>
-        <div class="data-cell"><div class="k">Экран / avail</div><div class="v">${escapeHtml(dev.screen || '—')} / ${escapeHtml(dev.availScreen || '—')}</div></div>
+        <div class="data-cell"><div class="k">Экран</div><div class="v">${escapeHtml(dev.screen || '—')}</div></div>
         <div class="data-cell"><div class="k">Язык</div><div class="v">${escapeHtml(dev.language || '—')}</div></div>
-        <div class="data-cell"><div class="k">Языки</div><div class="v">${escapeHtml(dev.languages || '—')}</div></div>
-        <div class="data-cell"><div class="k">Timezone</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
+        <div class="data-cell"><div class="k">Часовой пояс</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
         <div class="data-cell"><div class="k">CPU / RAM</div><div class="v">${dev.cores || '—'} / ${dev.memory || '—'} GB</div></div>
         <div class="data-cell"><div class="k">Touch / Online</div><div class="v">${escapeHtml(dev.touch || '—')} / ${escapeHtml(dev.online || '—')}</div></div>
         <div class="data-cell"><div class="k">Cookies / DNT</div><div class="v">${escapeHtml(dev.cookies || '—')} / ${escapeHtml(dev.doNotTrack || '—')}</div></div>
         <div class="data-cell"><div class="k">Pixel Ratio</div><div class="v">${dev.pixelRatio || '—'}</div></div>
-        <div class="data-cell"><div class="k">Color Depth</div><div class="v">${dev.colorDepth || '—'} bit</div></div>
-        <div class="data-cell"><div class="k">Vendor</div><div class="v">${escapeHtml(dev.vendor || '—')}</div></div>
         <div class="data-cell"><div class="k">Анкет / Ботов / Ответов</div><div class="v">${surveysCount} / ${botsCount} / ${responsesCount}</div></div>
-        <div class="data-cell full"><div class="k">User-Agent</div><div class="v" style="font-size:10px">${escapeHtml(dev.ua || '—')}</div></div>
-        <div class="data-cell full"><div class="k">URL входа / Referrer</div><div class="v" style="font-size:10px">${escapeHtml(dev.url || '—')} / ${escapeHtml(dev.referrer || '—')}</div></div>
-        ${u.lastDevice ? `<div class="data-cell full"><div class="k">Устройство последнего входа</div><div class="v" style="font-size:10px">${escapeHtml(lastDev.ua || '—')}</div></div>` : ''}
+        <div class="data-cell"><div class="k">Последний вход</div><div class="v">${formatDate(u.lastLoginAt)}</div></div>
+        <div class="data-cell full"><div class="k">User-Agent</div><div class="v" style="font-size:11px">${escapeHtml(dev.ua || '—')}</div></div>
+        <div class="data-cell full"><div class="k">URL входа / Referrer</div><div class="v" style="font-size:11px">${escapeHtml(dev.url || '—')} / ${escapeHtml(dev.referrer || '—')}</div></div>
+        ${u.lastDevice ? `<div class="data-cell full"><div class="k">Последний вход — устройство</div><div class="v" style="font-size:11px">${escapeHtml(lastDev.ua || '—')}</div></div>` : ''}
       </div>
       <div class="user-actions">
         ${u.banned
-                        ? `<button class="btn success small" onclick="unbanUser('${u.id}')">✓ Разбанить</button>`
-                        : `<button class="btn warn small" onclick="banUser('${u.id}')">⚠ Забанить</button>`}
-        <button class="btn small" onclick="openEditModal('${u.id}')">✎ Редактировать</button>
-        <button class="btn danger small" onclick="deleteUser('${u.id}')">✕ Удалить</button>
+                        ? `<button class="btn success sm" onclick="unbanUser('${u.id}')">✓ Разбанить</button>`
+                        : `<button class="btn warn sm" onclick="banUser('${u.id}')">Забанить</button>`}
+        <button class="btn sm" onclick="openEditModal('${u.id}')">Редактировать</button>
+        <button class="btn danger sm" onclick="deleteUser('${u.id}')">Удалить</button>
       </div>
     `;
                 box.appendChild(card);
             });
         }
 
-        function banUser(id) {
-            const u = currentUsers.find(x => x.id === id);
+        async function banUser(id) {
+            const u = db.users.find(x => x.id === id);
             if (!u) return;
-            if (!confirm(`Забанить субъекта «${u.name}»?\nЕго анкеты исчезнут из публичного доступа.`)) return;
+            if (!confirm(`Забанить пользователя «${u.name}»?\nЕго анкеты станут недоступны для прохождения.`)) return;
             u.banned = true;
             u.bannedAt = Date.now();
-            saveAll();
-            refreshData();
+            await SurveyAPI.saveState(db);
+            await refreshData();
         }
 
-        function unbanUser(id) {
-            const u = currentUsers.find(x => x.id === id);
+        async function unbanUser(id) {
+            const u = db.users.find(x => x.id === id);
             if (!u) return;
             u.banned = false;
             delete u.bannedAt;
-            saveAll();
-            refreshData();
+            await SurveyAPI.saveState(db);
+            await refreshData();
         }
 
-        function deleteUser(id) {
-            const u = currentUsers.find(x => x.id === id);
+        async function deleteUser(id) {
+            const u = db.users.find(x => x.id === id);
             if (!u) return;
-            if (!confirm(`УДАЛИТЬ субъекта «${u.name}»?\nВсе его анкеты, боты и ответы будут уничтожены безвозвратно.`)) return;
-            const userSurveyIds = currentSurveys.filter(s => s.ownerId === id).map(s => s.id);
-            const userBotIds = currentBots.filter(b => b.ownerId === id).map(b => b.id);
-            currentSurveys = currentSurveys.filter(s => s.ownerId !== id);
-            currentBots = currentBots.filter(b => b.ownerId !== id);
-            currentResponses = currentResponses.filter(r => !userSurveyIds.includes(r.surveyId) && !userBotIds.includes(r.botId));
-            currentUsers = currentUsers.filter(x => x.id !== id);
-            saveAll();
-            refreshData();
+            if (!confirm(`Удалить пользователя «${u.name}»?\nВсе его анкеты, боты и ответы будут удалены безвозвратно.`)) return;
+            const userSurveyIds = db.surveys.filter(s => s.ownerId === id).map(s => s.id);
+            const userBotIds = db.bots.filter(b => b.ownerId === id).map(b => b.id);
+            db.surveys = db.surveys.filter(s => s.ownerId !== id);
+            db.bots = db.bots.filter(b => b.ownerId !== id);
+            db.responses = db.responses.filter(r => !userSurveyIds.includes(r.surveyId) && !userBotIds.includes(r.botId));
+            db.users = db.users.filter(x => x.id !== id);
+            await SurveyAPI.saveState(db);
+            await refreshData();
         }
 
         function openEditModal(id) {
-            const u = currentUsers.find(x => x.id === id);
+            const u = db.users.find(x => x.id === id);
             if (!u) return;
             editingUserId = id;
             document.getElementById('editName').value = u.name || '';
@@ -1378,111 +1072,106 @@
             editingUserId = null;
             document.getElementById('editModal').classList.remove('show');
         }
-        function saveUserEdit() {
-            const u = currentUsers.find(x => x.id === editingUserId);
+        async function saveUserEdit() {
+            const u = db.users.find(x => x.id === editingUserId);
             if (!u) return;
             const name = document.getElementById('editName').value.trim();
             const pass = document.getElementById('editPassword').value;
             const avatar = document.getElementById('editAvatar').value.trim();
             if (!name) return alert('Имя не может быть пустым');
-            if (currentUsers.some(x => x.id !== u.id && (x.name || '').toLowerCase() === name.toLowerCase())) {
+            if (db.users.some(x => x.id !== u.id && (x.name || '').toLowerCase() === name.toLowerCase())) {
                 return alert('Имя уже занято');
             }
             u.name = name;
             if (pass) u.password = pass;
             u.avatar = avatar;
-            saveAll();
+            await SurveyAPI.saveState(db);
             closeEditModal();
-            refreshData();
+            await refreshData();
         }
 
         function renderDevices() {
             const box = document.getElementById('devicesBox');
             const map = {};
-            currentUsers.forEach(u => {
+            db.users.forEach(u => {
                 const id = u.deviceId || 'unknown';
                 if (!map[id]) map[id] = { id, users: [], device: u.device || {} };
                 map[id].users.push(u);
             });
             const ids = Object.keys(map);
-            if (!ids.length) { box.innerHTML = '<div class="empty">▸ Нет данных о терминалах</div>'; return; }
+            if (!ids.length) { box.innerHTML = '<div class="empty">Нет данных об устройствах</div>'; return; }
             box.innerHTML = '';
             ids.sort((a, b) => map[b].users.length - map[a].users.length).forEach(id => {
                 const g = map[id];
                 const dev = g.device || {};
                 const card = document.createElement('div');
-                card.className = 'device-block';
+                card.className = 'device-row';
                 card.innerHTML = `
-      <div class="device-header">
-        <div class="device-icon">▣</div>
+      <div class="device-top">
+        <div class="device-icon-box">📱</div>
         <div style="flex:1;min-width:0">
-          <div class="device-id">${escapeHtml(id)}</div>
-          <div class="user-meta">Аккаунтов: <b>${g.users.length}</b> • ${escapeHtml(dev.platform || '—')} • ${escapeHtml(dev.screen || '—')}</div>
+          <div class="device-id-text">${escapeHtml(id)}</div>
+          <div class="device-meta">Аккаунтов: ${g.users.length} • ${escapeHtml(dev.platform || '—')} • ${escapeHtml(dev.screen || '—')}</div>
         </div>
       </div>
       <div class="device-accounts">
-        ${g.users.map(u => `<span class="account-pill${u.banned ? ' banned' : ''}">${escapeHtml(u.name)}${u.banned ? ' ⊘' : ''}</span>`).join('')}
-      </div>
-      <div class="data-grid" style="margin-top:8px">
-        <div class="data-cell"><div class="k">Timezone</div><div class="v">${escapeHtml(dev.timezone || '—')}</div></div>
-        <div class="data-cell"><div class="k">Язык</div><div class="v">${escapeHtml(dev.language || '—')}</div></div>
-        <div class="data-cell"><div class="k">CPU</div><div class="v">${dev.cores || '—'}</div></div>
-        <div class="data-cell"><div class="k">Touch</div><div class="v">${escapeHtml(dev.touch || '—')}</div></div>
+        ${g.users.map(u => `<span class="account-chip${u.banned ? ' banned' : ''}">${escapeHtml(u.name)}${u.banned ? ' (бан)' : ''}</span>`).join('')}
       </div>
     `;
                 box.appendChild(card);
             });
         }
 
-        function renderSystemSummary() {
-            const box = document.getElementById('systemSummary');
-            const totalResponses = currentResponses.length;
-            const publicResponses = currentResponses.filter(r => r.source === 'public').length;
-            const botResponses = currentResponses.filter(r => r.source === 'bot').length;
-            const topSurveys = currentSurveys.map(s => ({
+        function renderSummary() {
+            const box = document.getElementById('summaryBox');
+            const totalResponses = db.responses.length;
+            const publicResponses = db.responses.filter(r => r.source === 'public').length;
+            const botResponses = db.responses.filter(r => r.source === 'bot').length;
+            const topSurveys = db.surveys.map(s => ({
                 title: s.title,
-                count: currentResponses.filter(r => r.surveyId === s.id).length,
-                owner: currentUsers.find(u => u.id === s.ownerId)?.name || '—',
-                banned: currentUsers.find(u => u.id === s.ownerId)?.banned
+                count: db.responses.filter(r => r.surveyId === s.id).length,
+                owner: db.users.find(u => u.id === s.ownerId)?.name || '—',
+                banned: db.users.find(u => u.id === s.ownerId)?.banned
             })).sort((a, b) => b.count - a.count).slice(0, 5);
 
             box.innerHTML = `
-    <div class="metrics-row" style="margin-bottom:16px">
+    <div class="metric-row" style="margin-bottom:14px">
       <div class="metric"><div class="lbl">Всего ответов</div><div class="val">${totalResponses}</div></div>
-      <div class="metric"><div class="lbl">От людей</div><div class="val" style="color:var(--blue)">${publicResponses}</div></div>
+      <div class="metric"><div class="lbl">От людей</div><div class="val">${publicResponses}</div></div>
       <div class="metric"><div class="lbl">От ботов</div><div class="val">${botResponses}</div></div>
     </div>
-    <div class="panel-title" style="margin-bottom:10px"><span class="marker">▸</span>Топ-5 анкет</div>
-    <div class="top-surveys">
+    <div class="top-list">
       ${topSurveys.length ? topSurveys.map(s => `
-        <div class="top-survey-row">
+        <div class="top-item">
           <div>
-            <div class="top-survey-title">${escapeHtml(s.title)}</div>
-            <div class="top-survey-owner">автор: ${escapeHtml(s.owner)}${s.banned ? ' ⊘' : ''}</div>
+            <div class="top-item-title">${escapeHtml(s.title)}</div>
+            <div class="top-item-sub">автор: ${escapeHtml(s.owner)}${s.banned ? ' (бан)' : ''}</div>
           </div>
-          <div class="top-survey-count">${s.count}</div>
+          <div class="top-item-count">${s.count}</div>
         </div>
-      `).join('') : '<div class="empty">▸ Нет данных</div>'}
+      `).join('') : '<div class="empty">Нет данных</div>'}
     </div>
   `;
         }
 
-        document.getElementById('saPassword').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') saLogin();
-        });
-        document.getElementById('saLogin').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') document.getElementById('saPassword').focus();
-        });
+        document.getElementById('saPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') saLogin(); });
+        document.getElementById('saLogin').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('saPassword').focus(); });
 
         if (localStorage.getItem(SA_SESSION) === '1') {
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
-            refreshData();
+            SurveyAPI.init().then(() => refreshData());
         }
 
-        setInterval(() => {
-            if (localStorage.getItem(SA_SESSION) === '1') refreshData();
-        }, 2000);
+        SurveyAPI.onChange((data, reason) => {
+            if (reason === 'fetch' && localStorage.getItem(SA_SESSION) === '1') {
+                db = data;
+                renderMetrics();
+                renderUsers();
+                renderDevices();
+                renderSummary();
+            }
+        });
     </script>
 </body>
 

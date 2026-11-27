@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Анкетирование</title>
+  <script src="api.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -118,10 +119,6 @@
       padding: 11px 18px;
     }
 
-    button:active {
-      transform: scale(0.98);
-    }
-
     .question-block {
       border: 1px solid #e2e8f0;
       border-radius: 12px;
@@ -194,10 +191,6 @@
       border-radius: 8px;
       cursor: pointer;
       border: 1px solid #c7d2fe;
-    }
-
-    .photo-btn:hover {
-      background: #e0e7ff;
     }
 
     .survey-meta {
@@ -280,13 +273,13 @@
       <div id="surveyPickRow" style="display:none">
         <select id="surveyPick"></select>
       </div>
-      <div id="publicForm"></div>
+      <div id="publicForm">
+        <p class="muted">Загрузка...</p>
+      </div>
     </div>
   </div>
 
   <script>
-    const DATA_KEY = 'survey_app_v6';
-    const CHANNEL_NAME = 'survey_updates_v6';
     const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" fill="#cbd5e1"/>
@@ -298,23 +291,11 @@
     let pendingAvatar = '';
     let currentSurveyId = '';
     let lastSignature = '';
-    let channel = null;
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
     function uid() { return Math.random().toString(36).slice(2, 10); }
-
-    function loadData() {
-      try {
-        const raw = localStorage.getItem(DATA_KEY);
-        if (raw) return JSON.parse(raw);
-      } catch (e) { }
-      return { users: [], surveys: [], bots: [], responses: [] };
-    }
-    function saveData(d) {
-      try { localStorage.setItem(DATA_KEY, JSON.stringify(d)); } catch (e) { }
-    }
 
     function getParam(name) {
       const url = new URL(window.location.href);
@@ -342,12 +323,7 @@
 
     function signatureOf(surveys, users) {
       return JSON.stringify({
-        s: surveys.map(s => ({
-          id: s.id,
-          title: s.title,
-          ownerId: s.ownerId,
-          questions: s.questions.map(q => ({ id: q.id, text: q.text, type: q.type, multi: q.multi, options: q.options }))
-        })),
+        s: surveys.map(s => ({ id: s.id, title: s.title, ownerId: s.ownerId, q: s.questions.map(q => ({ id: q.id, text: q.text, type: q.type, multi: q.multi, options: q.options })) })),
         u: users.map(u => ({ id: u.id, name: u.name, banned: !!u.banned }))
       });
     }
@@ -386,69 +362,49 @@
     function renderEmpty() {
       const box = document.getElementById('publicForm');
       document.getElementById('surveyPickRow').style.display = 'none';
-      box.innerHTML = `
-    <div class="empty-box">
-      <div class="icon">🗂️</div>
-      <p><strong>Пока нет доступных анкет</strong></p>
-      <p class="muted">Создайте анкету в админ-панели — она появится здесь автоматически.</p>
-    </div>`;
+      box.innerHTML = `<div class="empty-box"><div class="icon">🗂️</div><p><strong>Пока нет доступных анкет</strong></p><p class="muted">Создайте анкету в админ-панели — она появится здесь автоматически.</p></div>`;
     }
 
     function renderPublic(force = false) {
-      const data = loadData();
+      const data = SurveyAPI.getState();
       const box = document.getElementById('publicForm');
       const pickRow = document.getElementById('surveyPickRow');
       const pick = document.getElementById('surveyPick');
-
-      const bannedIds = new Set(data.users.filter(u => u.banned).map(u => u.id));
-      const visibleSurveys = data.surveys.filter(s => !bannedIds.has(s.ownerId));
-
-      if (!visibleSurveys.length) {
-        renderEmpty();
-        lastSignature = '';
-        return;
-      }
-
+      const bannedIds = new Set((data.users || []).filter(u => u.banned).map(u => u.id));
+      const visibleSurveys = (data.surveys || []).filter(s => !bannedIds.has(s.ownerId));
+      if (!visibleSurveys.length) { renderEmpty(); lastSignature = ''; return; }
       if (!currentSurveyId || !visibleSurveys.some(s => s.id === currentSurveyId)) {
         currentSurveyId = getInitialSurveyId(visibleSurveys);
       }
-
-      const newSig = signatureOf(visibleSurveys, data.users);
-      if (!force && newSig === lastSignature && box.children.length) return;
+      const newSig = signatureOf(visibleSurveys, data.users || []);
+      if (!force && newSig === lastSignature && box.querySelector('#publicQuestions')) return;
       lastSignature = newSig;
 
       if (visibleSurveys.length > 1) {
         pickRow.style.display = 'block';
         pick.innerHTML = visibleSurveys.map(s => {
-          const owner = data.users.find(u => u.id === s.ownerId);
+          const owner = (data.users || []).find(u => u.id === s.ownerId);
           const ownerName = owner ? owner.name : (s.ownerName || '');
           return `<option value="${s.id}" ${s.id === currentSurveyId ? 'selected' : ''}>${escapeHtml(s.title)}${ownerName ? ' — ' + escapeHtml(ownerName) : ''}</option>`;
         }).join('');
-        pick.onchange = () => {
-          currentSurveyId = pick.value;
-          renderPublic(true);
-        };
+        pick.onchange = () => { currentSurveyId = pick.value; renderPublic(true); };
       } else {
         pickRow.style.display = 'none';
       }
 
       const survey = visibleSurveys.find(s => s.id === currentSurveyId);
       if (!survey) { renderEmpty(); return; }
-
       const dirty = isFormDirty(survey);
-      if (dirty && !force) {
-        showBanner('Анкета была изменена. Обновите страницу, чтобы увидеть новую версию.');
-        return;
-      }
+      if (dirty && !force) { showBanner('Анкета была изменена. Обновите страницу, чтобы увидеть новую версию.'); return; }
 
-      const owner = data.users.find(u => u.id === survey.ownerId);
+      const owner = (data.users || []).find(u => u.id === survey.ownerId);
       const ownerName = owner ? owner.name : (survey.ownerName || 'Неизвестный автор');
 
       box.innerHTML = `<h2>${escapeHtml(survey.title)}</h2>
     <div class="survey-meta">
       <span>Автор: <span class="owner">${escapeHtml(ownerName)}</span></span>
       <span>Вопросов: ${survey.questions.length}</span>
-      <span>Ответов: ${data.responses.filter(r => r.surveyId === survey.id).length}</span>
+      <span>Ответов: ${(data.responses || []).filter(r => r.surveyId === survey.id).length}</span>
     </div>
     <p class="muted">Заполните все вопросы и отправьте ответы.</p>
     <div class="profile-row">
@@ -466,63 +422,37 @@
         const block = document.createElement('div');
         block.className = 'question-block';
         let inner = `<div><strong>${idx + 1}. ${escapeHtml(q.text)}</strong></div>`;
-        if (q.type === 'open') {
-          inner += `<input type="text" data-qid="${q.id}" data-type="open" placeholder="Ваш ответ">`;
-        } else if (q.type === 'semi') {
-          if (q.multi) {
-            q.options.forEach(o => {
-              inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-multi"> ${escapeHtml(o)}</label>`;
-            });
-          } else {
-            q.options.forEach(o => {
-              inner += `<label><input type="radio" name="q_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-single"> ${escapeHtml(o)}</label>`;
-            });
-          }
+        if (q.type === 'open') inner += `<input type="text" data-qid="${q.id}" data-type="open" placeholder="Ваш ответ">`;
+        else if (q.type === 'semi') {
+          if (q.multi) q.options.forEach(o => { inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-multi"> ${escapeHtml(o)}</label>`; });
+          else q.options.forEach(o => { inner += `<label><input type="radio" name="q_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-single"> ${escapeHtml(o)}</label>`; });
           inner += `<input type="text" data-qid="${q.id}" data-type="semi-own" placeholder="Свой вариант">`;
         } else {
-          if (q.multi) {
-            q.options.forEach(o => {
-              inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-multi"> ${escapeHtml(o)}</label>`;
-            });
-          } else {
-            q.options.forEach(o => {
-              inner += `<label><input type="radio" name="q_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-single"> ${escapeHtml(o)}</label>`;
-            });
-          }
+          if (q.multi) q.options.forEach(o => { inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-multi"> ${escapeHtml(o)}</label>`; });
+          else q.options.forEach(o => { inner += `<label><input type="radio" name="q_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-single"> ${escapeHtml(o)}</label>`; });
         }
         block.innerHTML = inner;
         qBox.appendChild(block);
       });
-
       document.getElementById('publicSubmit').onclick = () => submitPublic(survey);
     }
 
-    function submitPublic(survey) {
-      const data = loadData();
+    async function submitPublic(survey) {
+      const data = SurveyAPI.getState();
       const liveSurvey = data.surveys.find(s => s.id === survey.id);
       if (!liveSurvey) { alert('Анкета была удалена.'); currentSurveyId = ''; renderPublic(true); return; }
       const owner = data.users.find(u => u.id === liveSurvey.ownerId);
-      if (owner && owner.banned) {
-        alert('Автор анкеты заблокирован. Анкета недоступна для прохождения.');
-        renderPublic(true);
-        return;
-      }
+      if (owner && owner.banned) { alert('Автор анкеты заблокирован.'); renderPublic(true); return; }
       if (JSON.stringify(liveSurvey.questions) !== JSON.stringify(survey.questions)) {
-        alert('Анкета была изменена. Загружена актуальная версия — заполните заново.');
-        renderPublic(true);
-        return;
+        alert('Анкета была изменена. Заполните заново.'); renderPublic(true); return;
       }
       const nameEl = document.getElementById('respName');
       const name = (nameEl.value || '').trim() || 'Аноним';
       const answers = {};
       let ok = true;
       survey.questions.forEach(q => {
-        if (q.type === 'open') {
-          const el = document.querySelector(`input[data-qid="${q.id}"][data-type="open"]`);
-          const v = el ? el.value.trim() : '';
-          if (!v) ok = false;
-          answers[q.id] = v;
-        } else if (q.type === 'semi') {
+        if (q.type === 'open') { const el = document.querySelector(`input[data-qid="${q.id}"][data-type="open"]`); const v = el ? el.value.trim() : ''; if (!v) ok = false; answers[q.id] = v; }
+        else if (q.type === 'semi') {
           const own = document.querySelector(`input[data-qid="${q.id}"][data-type="semi-own"]`);
           const ownVal = own ? own.value.trim() : '';
           if (q.multi) {
@@ -551,45 +481,27 @@
       });
       const msg = document.getElementById('publicMsg');
       if (!ok) { msg.innerHTML = '<p style="color:#dc2626;margin-top:10px">Ответьте на все вопросы.</p>'; return; }
-      data.responses.push({
-        id: uid(),
-        surveyId: survey.id,
-        botId: 'public_' + uid(),
-        botName: name,
-        avatar: pendingAvatar || '',
-        source: 'public',
-        answers,
-        createdAt: Date.now()
-      });
-      saveData(data);
-      if (channel) { try { channel.postMessage({ type: 'update', at: Date.now() }); } catch (e) { } }
+      data.responses.push({ id: uid(), surveyId: survey.id, botId: 'public_' + uid(), botName: name, avatar: pendingAvatar || '', source: 'public', answers, createdAt: Date.now() });
+      await SurveyAPI.saveState(data);
       document.getElementById('publicQuestions').innerHTML = '';
       document.getElementById('publicSubmit').style.display = 'none';
       msg.innerHTML = '<div class="success" style="margin-top:12px">✅ Спасибо! Ваши ответы сохранены.</div>';
     }
 
-    function syncFromStorage() {
-      const data = loadData();
-      const bannedIds = new Set(data.users.filter(u => u.banned).map(u => u.id));
-      const visible = data.surveys.filter(s => !bannedIds.has(s.ownerId));
-      const newSig = signatureOf(visible, data.users);
-      if (newSig !== lastSignature) {
-        const had = !!lastSignature;
-        renderPublic();
-        if (had && newSig) showBanner('Анкета обновлена. Загружена актуальная версия.');
+    SurveyAPI.onChange((data, reason) => {
+      if (reason === 'fetch') {
+        const bannedIds = new Set((data.users || []).filter(u => u.banned).map(u => u.id));
+        const visible = (data.surveys || []).filter(s => !bannedIds.has(s.ownerId));
+        const newSig = signatureOf(visible, data.users || []);
+        if (newSig !== lastSignature) {
+          const had = !!lastSignature;
+          renderPublic();
+          if (had) showBanner('Анкета обновлена. Загружена актуальная версия.');
+        }
       }
-    }
+    });
 
-    window.addEventListener('storage', (e) => { if (e.key === DATA_KEY) syncFromStorage(); });
-    try {
-      channel = new BroadcastChannel(CHANNEL_NAME);
-      channel.onmessage = (e) => { if (e.data && e.data.type === 'update') syncFromStorage(); };
-    } catch (e) { channel = null; }
-    setInterval(syncFromStorage, 1000);
-    window.addEventListener('focus', syncFromStorage);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) syncFromStorage(); });
-
-    renderPublic(true);
+    SurveyAPI.init().then(() => renderPublic(true));
   </script>
 </body>
 

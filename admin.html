@@ -1,1071 +1,243 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ-панель</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
-            color: #1f2937;
-            min-height: 100vh;
-            font-size: 15px;
-        }
-
-        header {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: #fff;
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
-            position: relative;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 17px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-chip {
-            background: rgba(255, 255, 255, 0.18);
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .user-chip .av {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #cbd5e1;
-            overflow: hidden;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-chip .av img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .burger {
-            background: rgba(255, 255, 255, 0.15);
-            border: none;
-            color: #fff;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-        }
-
-        .burger:hover {
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: none;
-            transform: none;
-        }
-
-        .menu {
-            position: absolute;
-            top: 62px;
-            right: 18px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
-            padding: 6px;
-            min-width: 210px;
-            z-index: 100;
-            display: none;
-        }
-
-        .menu.open {
-            display: block;
-        }
-
-        .menu button {
-            display: block;
-            width: 100%;
-            text-align: left;
-            background: transparent;
-            color: #1f2937;
-            border: none;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .menu button:hover {
-            background: #eef2ff;
-            color: #4338ca;
-            box-shadow: none;
-            transform: none;
-        }
-
-        .menu .divider {
-            height: 1px;
-            background: #eef2f7;
-            margin: 4px 0;
-        }
-
-        .container {
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        @media (max-width: 900px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .card {
-            background: #fff;
-            border-radius: 14px;
-            padding: 16px;
-            box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
-            margin-bottom: 16px;
-            border: 1px solid #eef2f7;
-        }
-
-        .card h2 {
-            margin-top: 0;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        input,
-        select,
-        button,
-        textarea {
-            font-family: inherit;
-            font-size: 14px;
-            padding: 9px 11px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            outline: none;
-            background: #fff;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-
-        button {
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
-        }
-
-        button.secondary {
-            background: #64748b;
-        }
-
-        button.danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
-        .row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .row input[type="text"],
-        .row input[type="password"] {
-            flex: 1;
-            min-width: 140px;
-        }
-
-        .question-block {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #f8fafc;
-        }
-
-        .question-block .row {
-            margin-bottom: 6px;
-        }
-
-        .option-row {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 6px;
-            align-items: center;
-        }
-
-        .option-row input {
-            flex: 1;
-        }
-
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 9px 10px;
-            border-bottom: 1px solid #eef2f7;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .list-item:last-child {
-            border-bottom: none;
-        }
-
-        .badge {
-            background: #e0e7ff;
-            color: #3730a3;
-            padding: 2px 9px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge.mine {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .badge.other {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .muted {
-            color: #64748b;
-            font-size: 12px;
-        }
-
-        .survey-select {
-            min-width: 180px;
-        }
-
-        .avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: #cbd5e1;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .bot-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .tab-hidden {
-            display: none;
-        }
-
-        .answer-edit {
-            background: #f8fafc;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-left: 4px solid #6366f1;
-        }
-
-        .answer-edit .question-block {
-            background: #fff;
-        }
-
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .profile-preview {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #cbd5e1;
-            overflow: hidden;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #e2e8f0;
-        }
-
-        .profile-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .photo-btn {
-            background: #eef2ff;
-            color: #4338ca;
-            font-size: 13px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 1px solid #c7d2fe;
-            display: inline-block;
-        }
-
-        .photo-btn:hover {
-            background: #e0e7ff;
-        }
-
-        .results-toolbar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-            margin-bottom: 16px;
-            padding: 12px;
-            background: #f8fafc;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .results-toolbar label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .results-toolbar .field {
-            flex: 1;
-            min-width: 160px;
-        }
-
-        .results-toolbar select {
-            width: 100%;
-            padding: 10px 12px;
-            font-size: 14px;
-        }
-
-        .results-summary-bar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 18px;
-        }
-
-        .summary-card {
-            flex: 1;
-            min-width: 140px;
-            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-            border-radius: 12px;
-            padding: 12px 16px;
-            border: 1px solid #c7d2fe;
-        }
-
-        .summary-card .label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #6366f1;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .summary-card .value {
-            font-size: 22px;
-            font-weight: 800;
-            color: #312e81;
-            line-height: 1.1;
-        }
-
-        .summary-card .sub {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        .result-block {
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            margin-bottom: 18px;
-            background: #fff;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
-        }
-
-        .result-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            padding: 12px 14px;
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            color: #fff;
-            flex-wrap: wrap;
-        }
-
-        .result-header h3 {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-            flex: 1;
-            min-width: 0;
-            word-break: break-word;
-        }
-
-        .result-header .qnum {
-            background: rgba(255, 255, 255, 0.22);
-            width: 26px;
-            height: 26px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .result-header .qbadge {
-            background: rgba(255, 255, 255, 0.22);
-            padding: 2px 9px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
-
-        .result-body {
-            display: grid;
-            grid-template-columns: 1.1fr 1fr;
-            gap: 0;
-        }
-
-        @media (max-width: 760px) {
-            .result-body {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .chart-wrap {
-            padding: 14px;
-            border-right: 1px solid #eef2f7;
-            min-width: 0;
-        }
-
-        @media (max-width: 760px) {
-            .chart-wrap {
-                border-right: none;
-                border-bottom: 1px solid #eef2f7;
-            }
-        }
-
-        .chart-canvas-wrap {
-            position: relative;
-            width: 100%;
-            height: 260px;
-            min-height: 260px;
-        }
-
-        @media (max-width: 640px) {
-            .chart-canvas-wrap {
-                height: 220px;
-                min-height: 220px;
-            }
-        }
-
-        .chart-canvas-wrap canvas {
-            display: block;
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .answers-wrap {
-            padding: 14px;
-            min-width: 0;
-        }
-
-        .answers-wrap .answers-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #64748b;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .answers-list {
-            max-height: 260px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-
-        @media (max-width: 640px) {
-            .answers-list {
-                max-height: 220px;
-            }
-        }
-
-        .answers-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .answers-list::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 6px;
-        }
-
-        .answer-row {
-            display: flex;
-            gap: 8px;
-            align-items: flex-start;
-            padding: 7px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .answer-row:last-child {
-            border-bottom: none;
-        }
-
-        .answer-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .answer-content .q {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 600;
-            margin-bottom: 1px;
-        }
-
-        .answer-content .a {
-            font-size: 13px;
-            font-weight: 500;
-            color: #1f2937;
-            word-break: break-word;
-            line-height: 1.35;
-        }
-
-        .empty-chart {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #94a3b8;
-            font-size: 13px;
-            text-align: center;
-            padding: 10px;
-        }
-
-        .bot-select-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 10px;
-            border-bottom: 1px solid #eef2f7;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .bot-select-item:hover {
-            background: #f8fafc;
-        }
-
-        .bot-select-item:last-child {
-            border-bottom: none;
-        }
-
-        .bot-select-item.selected {
-            background: #eef2ff;
-        }
-
-        .bot-check {
-            width: 18px;
-            height: 18px;
-            border-radius: 6px;
-            border: 2px solid #cbd5e1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            background: #fff;
-            transition: all 0.15s;
-        }
-
-        .bot-select-item.selected .bot-check {
-            background: #4f46e5;
-            border-color: #4f46e5;
-        }
-
-        .bot-select-item.selected .bot-check::after {
-            content: '✓';
-            color: #fff;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .bot-send-bar {
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            color: #fff;
-            border-radius: 12px;
-            padding: 14px;
-            margin-top: 12px;
-        }
-
-        .bot-send-bar .title {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .bot-send-bar select {
-            width: 100%;
-            padding: 10px 12px;
-            margin-bottom: 10px;
-            border: none;
-        }
-
-        .bot-send-bar .btn-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .bot-send-bar button {
-            flex: 1;
-            min-width: 140px;
-            background: #fff;
-            color: #4338ca;
-            font-weight: 600;
-            padding: 10px 14px;
-        }
-
-        .bot-send-bar button:hover {
-            background: #eef2ff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .bot-send-bar button.secondary-light {
-            background: rgba(255, 255, 255, 0.18);
-            color: #fff;
-        }
-
-        .bot-send-bar button.secondary-light:hover {
-            background: rgba(255, 255, 255, 0.28);
-        }
-
-        .bot-toolbar {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .bot-toolbar .count-badge {
-            background: #4f46e5;
-            color: #fff;
-            padding: 2px 9px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .bot-toolbar button {
-            font-size: 12px;
-            padding: 6px 10px;
-        }
-
-        .auth-screen {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-        }
-
-        .auth-card {
-            background: #fff;
-            border-radius: 16px;
-            padding: 24px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
-        }
-
-        .auth-card h1 {
-            margin: 0 0 4px;
-            font-size: 22px;
-            color: #312e81;
-            text-align: center;
-        }
-
-        .auth-card p.sub {
-            margin: 0 0 18px;
-            font-size: 13px;
-            color: #64748b;
-            text-align: center;
-        }
-
-        .auth-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 16px;
-            background: #f1f5f9;
-            border-radius: 10px;
-            padding: 4px;
-        }
-
-        .auth-tabs button {
-            flex: 1;
-            background: transparent;
-            color: #475569;
-            box-shadow: none;
-            transform: none;
-            padding: 8px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .auth-tabs button.active {
-            background: #4f46e5;
-            color: #fff;
-        }
-
-        .auth-card input {
-            width: 100%;
-            margin-bottom: 10px;
-            padding: 11px 12px;
-        }
-
-        .auth-card .field-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        .auth-card .submit-btn {
-            width: 100%;
-            padding: 12px;
-            font-size: 15px;
-        }
-
-        .auth-error {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 10px;
-            display: none;
-        }
-
-        .auth-error.show {
-            display: block;
-        }
-
-        .auth-info {
-            background: #e0e7ff;
-            color: #3730a3;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            margin-bottom: 10px;
-        }
-
-        .device-badge {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 8px;
-            text-align: center;
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                padding: 10px;
-            }
-
-            .card {
-                padding: 12px;
-                border-radius: 12px;
-            }
-
-            header h1 {
-                font-size: 15px;
-            }
-
-            input,
-            select,
-            button,
-            textarea {
-                font-size: 16px;
-            }
-
-            .menu {
-                right: 10px;
-                top: 58px;
-            }
-
-            .results-toolbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .results-toolbar .field {
-                width: 100%;
-            }
-
-            .summary-card .value {
-                font-size: 18px;
-            }
-
-            .result-header h3 {
-                font-size: 13px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админ-панель</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="api.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%); color: #1f2937; min-height: 100vh; font-size: 15px; }
+  header { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 16px rgba(79,70,229,0.3); position: relative; }
+  header h1 { margin: 0; font-size: 17px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .user-chip { background: rgba(255,255,255,0.18); padding: 4px 10px; border-radius: 10px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .user-chip .av { width: 22px; height: 22px; border-radius: 50%; background: #cbd5e1; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .user-chip .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .burger { background: rgba(255,255,255,0.15); border: none; color: #fff; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .menu { position: absolute; top: 62px; right: 18px; background: #fff; border-radius: 12px; box-shadow: 0 12px 32px rgba(15,23,42,0.18); padding: 6px; min-width: 210px; z-index: 100; display: none; }
+  .menu.open { display: block; }
+  .menu button { display: block; width: 100%; text-align: left; background: transparent; color: #1f2937; border: none; padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .menu button:hover { background: #eef2ff; color: #4338ca; }
+  .menu .divider { height: 1px; background: #eef2f7; margin: 4px 0; }
+  .container { max-width: 1240px; margin: 0 auto; padding: 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 6px 24px rgba(15,23,42,0.08); margin-bottom: 16px; border: 1px solid #eef2f7; }
+  .card h2 { margin-top: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  input, select, button, textarea { font-family: inherit; font-size: 14px; padding: 9px 11px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; background: #fff; }
+  button { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; border: none; cursor: pointer; font-weight: 500; transition: transform 0.15s, box-shadow 0.15s; }
+  button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,0.35); }
+  button.secondary { background: #64748b; }
+  button.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .row input[type="text"], .row input[type="password"] { flex: 1; min-width: 140px; }
+  .question-block { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; margin-bottom: 10px; background: #f8fafc; }
+  .option-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .option-row input { flex: 1; }
+  .list-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 10px; border-bottom: 1px solid #eef2f7; gap: 10px; flex-wrap: wrap; }
+  .badge { background: #e0e7ff; color: #3730a3; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .badge.mine { background: #dcfce7; color: #166534; }
+  .badge.other { background: #fef3c7; color: #92400e; }
+  .muted { color: #64748b; font-size: 12px; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: #cbd5e1; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bot-row { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .tab-hidden { display: none; }
+  .answer-edit { background: #f8fafc; border-radius: 10px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #6366f1; }
+  .answer-edit .question-block { background: #fff; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .profile-preview { width: 48px; height: 48px; border-radius: 50%; background: #cbd5e1; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 2px solid #e2e8f0; }
+  .profile-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-btn { background: #eef2ff; color: #4338ca; font-size: 13px; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 1px solid #c7d2fe; display: inline-block; }
+  .results-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+  .results-toolbar label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px; }
+  .results-toolbar .field { flex: 1; min-width: 160px; }
+  .results-toolbar select { width: 100%; padding: 10px 12px; font-size: 14px; }
+  .results-summary-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .summary-card { flex: 1; min-width: 140px; background: linear-gradient(135deg, #eef2ff, #e0e7ff); border-radius: 12px; padding: 12px 16px; border: 1px solid #c7d2fe; }
+  .summary-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #6366f1; font-weight: 700; margin-bottom: 4px; }
+  .summary-card .value { font-size: 22px; font-weight: 800; color: #312e81; line-height: 1.1; }
+  .result-block { border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: 18px; background: #fff; overflow: hidden; }
+  .result-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; flex-wrap: wrap; }
+  .result-header h3 { margin: 0; font-size: 14px; font-weight: 600; flex: 1; word-break: break-word; }
+  .result-header .qnum { background: rgba(255,255,255,0.22); width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+  .result-body { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0; }
+  @media (max-width: 760px) { .result-body { grid-template-columns: 1fr; } }
+  .chart-wrap { padding: 14px; border-right: 1px solid #eef2f7; }
+  @media (max-width: 760px) { .chart-wrap { border-right: none; border-bottom: 1px solid #eef2f7; } }
+  .chart-canvas-wrap { position: relative; width: 100%; height: 260px; }
+  @media (max-width: 640px) { .chart-canvas-wrap { height: 220px; } }
+  .chart-canvas-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+  .answers-wrap { padding: 14px; }
+  .answers-list { max-height: 260px; overflow-y: auto; padding-right: 4px; }
+  .answer-row { display: flex; gap: 8px; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid #f1f5f9; }
+  .answer-content { flex: 1; min-width: 0; }
+  .answer-content .q { font-size: 11px; color: #64748b; font-weight: 600; }
+  .answer-content .a { font-size: 13px; font-weight: 500; word-break: break-word; }
+  .bot-select-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid #eef2f7; cursor: pointer; }
+  .bot-select-item.selected { background: #eef2ff; }
+  .bot-check { width: 18px; height: 18px; border-radius: 6px; border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #fff; }
+  .bot-select-item.selected .bot-check { background: #4f46e5; border-color: #4f46e5; }
+  .bot-select-item.selected .bot-check::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 700; }
+  .bot-send-bar { background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; border-radius: 12px; padding: 14px; margin-top: 12px; }
+  .bot-send-bar select { width: 100%; padding: 10px; margin-bottom: 10px; border: none; }
+  .bot-send-bar button { background: #fff; color: #4338ca; font-weight: 600; padding: 10px 14px; margin-right: 6px; }
+  .auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .auth-card { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(15,23,42,0.3); }
+  .auth-card h1 { margin: 0 0 4px; font-size: 22px; color: #312e81; text-align: center; }
+  .auth-card p.sub { margin: 0 0 18px; font-size: 13px; color: #64748b; text-align: center; }
+  .auth-tabs { display: flex; gap: 6px; margin-bottom: 16px; background: #f1f5f9; border-radius: 10px; padding: 4px; }
+  .auth-tabs button { flex: 1; background: transparent; color: #475569; padding: 8px; border-radius: 8px; font-weight: 600; }
+  .auth-tabs button.active { background: #4f46e5; color: #fff; }
+  .auth-card input { width: 100%; margin-bottom: 10px; padding: 11px 12px; }
+  .auth-card .field-label { font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px; display: block; }
+  .auth-card .submit-btn { width: 100%; padding: 12px; font-size: 15px; }
+  .auth-error { background: #fee2e2; color: #991b1b; padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 10px; display: none; }
+  .auth-error.show { display: block; }
+  .device-badge { font-size: 11px; color: #64748b; margin-top: 8px; text-align: center; }
+  @media (max-width: 640px) {
+    .container { padding: 10px; }
+    .card { padding: 12px; }
+    header h1 { font-size: 15px; }
+    input, select, button, textarea { font-size: 16px; }
+    .menu { right: 10px; top: 58px; }
+  }
+</style>
 </head>
-
 <body>
 
-    <div id="authScreen" class="auth-screen">
-        <div class="auth-card">
-            <h1>Админ-панель</h1>
-            <p class="sub">Единая база данных анкетирования</p>
-            <div class="auth-tabs">
-                <button id="tabLogin" class="active" onclick="switchAuth('login')">Вход</button>
-                <button id="tabRegister" onclick="switchAuth('register')">Регистрация</button>
-            </div>
-            <div id="authError" class="auth-error"></div>
-            <div id="bannedNotice" class="auth-error"></div>
-            <div id="loginForm">
-                <label class="field-label">Имя пользователя</label>
-                <input type="text" id="loginName" placeholder="Ваше имя" autocomplete="username">
-                <label class="field-label">Пароль</label>
-                <input type="password" id="loginPassword" placeholder="Пароль" autocomplete="current-password">
-                <button class="submit-btn" onclick="doLogin()">Войти</button>
-            </div>
-            <div id="registerForm" style="display:none">
-                <label class="field-label">Имя пользователя</label>
-                <input type="text" id="regName" placeholder="Ваше имя" autocomplete="username">
-                <label class="field-label">Пароль</label>
-                <input type="password" id="regPassword" placeholder="Минимум 4 символа" autocomplete="new-password">
-                <label class="field-label">Повтор пароля</label>
-                <input type="password" id="regPassword2" placeholder="Повторите пароль" autocomplete="new-password">
-                <button class="submit-btn" onclick="doRegister()">Зарегистрироваться</button>
-                <div class="auth-info" style="margin-top:12px">Почта не требуется. Имя должно быть уникальным.</div>
-            </div>
-            <div class="device-badge" id="deviceBadge"></div>
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <h1>Админ-панель</h1>
+    <p class="sub">Единая база данных</p>
+    <div class="auth-tabs">
+      <button id="tabLogin" class="active" onclick="switchAuth('login')">Вход</button>
+      <button id="tabRegister" onclick="switchAuth('register')">Регистрация</button>
+    </div>
+    <div id="authError" class="auth-error"></div>
+    <div id="loginForm">
+      <label class="field-label">Имя пользователя</label>
+      <input type="text" id="loginName" placeholder="Ваше имя" autocomplete="username">
+      <label class="field-label">Пароль</label>
+      <input type="password" id="loginPassword" placeholder="Пароль" autocomplete="current-password">
+      <button class="submit-btn" onclick="doLogin()">Войти</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <label class="field-label">Имя пользователя</label>
+      <input type="text" id="regName" placeholder="Ваше имя" autocomplete="username">
+      <label class="field-label">Пароль</label>
+      <input type="password" id="regPassword" placeholder="Минимум 4 символа" autocomplete="new-password">
+      <label class="field-label">Повтор пароля</label>
+      <input type="password" id="regPassword2" placeholder="Повторите пароль" autocomplete="new-password">
+      <button class="submit-btn" onclick="doRegister()">Зарегистрироваться</button>
+    </div>
+    <div class="device-badge" id="deviceBadge"></div>
+  </div>
+</div>
+
+<div id="appScreen" style="display:none">
+  <header>
+    <h1>Админ-панель</h1>
+    <div class="header-right">
+      <div class="user-chip" id="userChip"></div>
+      <button class="burger" id="burgerBtn">☰</button>
+    </div>
+    <div class="menu" id="burgerMenu">
+      <button data-tab="surveys">Мои анкеты</button>
+      <button data-tab="allSurveys">Все анкеты</button>
+      <button data-tab="results">Результаты</button>
+      <button data-tab="bots">Мои боты</button>
+      <button data-tab="responses">Ответы</button>
+      <div class="divider"></div>
+      <button onclick="logout()" style="color:#dc2626">Выйти</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="tab-surveys">
+      <div class="grid">
+        <div class="card">
+          <h2>Создать анкету</h2>
+          <div class="row"><input type="text" id="surveyTitle" placeholder="Название анкеты"></div>
+          <div id="questionsEditor"></div>
+          <div class="row">
+            <button onclick="addQuestion()">Добавить вопрос</button>
+            <button onclick="saveSurvey()">Сохранить</button>
+          </div>
         </div>
+        <div class="card">
+          <h2>Мои анкеты <span class="badge" id="surveyCount">0</span></h2>
+          <div id="surveyList"></div>
+        </div>
+      </div>
     </div>
 
-    <div id="appScreen" style="display:none">
-        <header>
-            <h1>Админ-панель</h1>
-            <div class="header-right">
-                <div class="user-chip" id="userChip"></div>
-                <button class="burger" id="burgerBtn" aria-label="Меню">☰</button>
-            </div>
-            <div class="menu" id="burgerMenu">
-                <button data-tab="surveys">Мои анкеты</button>
-                <button data-tab="allSurveys">Все анкеты</button>
-                <button data-tab="results">Результаты</button>
-                <button data-tab="bots">Мои боты</button>
-                <button data-tab="responses">Ответы</button>
-                <div class="divider"></div>
-                <button onclick="logout()" style="color:#dc2626">Выйти</button>
-            </div>
-        </header>
-
-        <div class="container">
-            <div id="tab-surveys">
-                <div class="grid">
-                    <div class="card">
-                        <h2>Создать анкету</h2>
-                        <div class="row">
-                            <input type="text" id="surveyTitle" placeholder="Название анкеты">
-                        </div>
-                        <div id="questionsEditor"></div>
-                        <div class="row">
-                            <button onclick="addQuestion()">Добавить вопрос</button>
-                            <button onclick="saveSurvey()">Сохранить</button>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h2>Мои анкеты <span class="badge" id="surveyCount">0</span></h2>
-                        <div id="surveyList"></div>
-                        <div class="row" style="margin-top:10px">
-                            <button class="secondary" onclick="openPublicPage()">Открыть публичную</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-allSurveys" class="tab-hidden">
-                <div class="card">
-                    <h2>Все анкеты в системе <span class="badge" id="allSurveyCount">0</span></h2>
-                    <p class="muted">Здесь видны анкеты всех пользователей. Можно пройти их и запустить в них своих
-                        ботов.</p>
-                    <div id="allSurveyList"></div>
-                </div>
-            </div>
-
-            <div id="tab-bots" class="tab-hidden">
-                <div class="grid">
-                    <div class="card">
-                        <h2>Создать бота-респондента</h2>
-                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
-                            <div class="profile-preview"><img id="botAvatarPreview" src="" alt="" style="display:none">
-                            </div>
-                            <label class="photo-btn" for="botAvatarInput">Фото профиля</label>
-                            <input type="file" id="botAvatarInput" accept="image/*" style="display:none"
-                                onchange="handleBotAvatar(event)">
-                        </div>
-                        <div class="row">
-                            <input type="text" id="botName" placeholder="Имя бота">
-                            <button onclick="createBot()">Создать</button>
-                        </div>
-                        <div class="row">
-                            <button onclick="runAllBotsMine()">Запустить моих ботов по всем анкетам</button>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h2>Мои боты <span class="badge" id="botCount">0</span></h2>
-                        <div class="bot-toolbar">
-                            <span class="count-badge" id="selectedBotsCount">0 выбрано</span>
-                            <button class="secondary" onclick="selectAllBots()">Выбрать всех</button>
-                            <button class="secondary" onclick="clearBotSelection()">Снять выбор</button>
-                        </div>
-                        <div id="botList"></div>
-                        <div class="bot-send-bar" id="botSendBar" style="display:none">
-                            <div class="title">Отправить выбранных ботов в анкету (любого пользователя)</div>
-                            <select id="botTargetSurvey"></select>
-                            <div class="btn-row">
-                                <button onclick="sendSelectedBotsToSurvey()">Отправить выбранных</button>
-                                <button class="secondary-light" onclick="clearBotSelection()">Снять выбор</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-responses" class="tab-hidden">
-                <div class="card">
-                    <h2>Редактирование ответов в моих анкетах</h2>
-                    <div class="row">
-                        <select id="editSurveySelect" class="survey-select" onchange="renderResponsesEdit()"></select>
-                    </div>
-                    <div id="responsesEditBox"></div>
-                </div>
-            </div>
-
-            <div id="tab-results" class="tab-hidden">
-                <div class="card">
-                    <h2>Результаты анкетирования</h2>
-                    <div class="results-toolbar">
-                        <div class="field">
-                            <label>Анкета</label>
-                            <select id="resultSurveySelect" onchange="renderResults()"></select>
-                        </div>
-                        <div class="field">
-                            <label>Тип диаграммы</label>
-                            <select id="chartType" onchange="renderResults()">
-                                <option value="bar">Столбчатая</option>
-                                <option value="horizontalBar">Горизонтальная</option>
-                                <option value="doughnut">Кольцевая</option>
-                                <option value="pie">Круговая</option>
-                                <option value="polarArea">Полярная</option>
-                                <option value="radar">Радар</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="resultSummary" class="results-summary-bar"></div>
-                    <div id="resultsContainer"></div>
-                </div>
-            </div>
-        </div>
+    <div id="tab-allSurveys" class="tab-hidden">
+      <div class="card">
+        <h2>Все анкеты в системе <span class="badge" id="allSurveyCount">0</span></h2>
+        <p class="muted">Анкеты всех пользователей с любых устройств.</p>
+        <div id="allSurveyList"></div>
+      </div>
     </div>
 
-    <script>
-        const DATA_KEY = 'survey_app_v6';
-        const CHANNEL_NAME = 'survey_updates_v6';
-        const SESSION_KEY = 'survey_admin_session_v6';
-        const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
+    <div id="tab-bots" class="tab-hidden">
+      <div class="grid">
+        <div class="card">
+          <h2>Создать бота</h2>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+            <div class="profile-preview"><img id="botAvatarPreview" src="" alt="" style="display:none"></div>
+            <label class="photo-btn" for="botAvatarInput">Фото профиля</label>
+            <input type="file" id="botAvatarInput" accept="image/*" style="display:none" onchange="handleBotAvatar(event)">
+          </div>
+          <div class="row"><input type="text" id="botName" placeholder="Имя бота"><button onclick="createBot()">Создать</button></div>
+          <div class="row"><button onclick="runAllBotsMine()">Запустить моих ботов по всем анкетам</button></div>
+        </div>
+        <div class="card">
+          <h2>Мои боты <span class="badge" id="botCount">0</span></h2>
+          <div id="botList"></div>
+          <div class="bot-send-bar" id="botSendBar" style="display:none">
+            <select id="botTargetSurvey"></select>
+            <button onclick="sendSelectedBotsToSurvey()">Отправить выбранных</button>
+            <button onclick="clearBotSelection()" style="background:rgba(255,255,255,0.2);color:#fff">Снять</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-responses" class="tab-hidden">
+      <div class="card">
+        <h2>Редактирование ответов</h2>
+        <div class="row"><select id="editSurveySelect" onchange="renderResponsesEdit()"></select></div>
+        <div id="responsesEditBox"></div>
+      </div>
+    </div>
+
+    <div id="tab-results" class="tab-hidden">
+      <div class="card">
+        <h2>Результаты</h2>
+        <div class="results-toolbar">
+          <div class="field"><label>Анкета</label><select id="resultSurveySelect" onchange="renderResults()"></select></div>
+          <div class="field"><label>Тип диаграммы</label><select id="chartType" onchange="renderResults()">
+            <option value="bar">Столбчатая</option>
+            <option value="horizontalBar">Горизонтальная</option>
+            <option value="doughnut">Кольцевая</option>
+            <option value="pie">Круговая</option>
+            <option value="polarArea">Полярная</option>
+            <option value="radar">Радар</option>
+          </select></div>
+        </div>
+        <div id="resultSummary" class="results-summary-bar"></div>
+        <div id="resultsContainer"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SESSION_KEY = 'survey_admin_session_v6';
+const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" fill="#cbd5e1"/>
   <circle cx="32" cy="24" r="12" fill="#94a3b8"/>
@@ -1073,218 +245,165 @@
 </svg>
 `)}`;
 
-        const state = {
-            users: [], surveys: [], bots: [], responses: [],
-            currentUser: null,
-            questionCounter: 0, charts: [], editingOptions: {},
-            selectedBotIds: new Set()
-        };
+const state = {
+  currentUser: null,
+  questionCounter: 0,
+  charts: [],
+  editingOptions: {},
+  selectedBotIds: new Set()
+};
 
-        let pendingBotAvatar = '';
-        let currentTab = 'surveys';
-        let channel = null;
+let pendingBotAvatar = '';
+let currentTab = 'surveys';
 
-        try { channel = new BroadcastChannel(CHANNEL_NAME); } catch (e) { channel = null; }
-        function notifyChange() { if (channel) { try { channel.postMessage({ type: 'update', at: Date.now() }); } catch (e) { } } }
+function uid() { return Math.random().toString(36).slice(2, 10); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-        function uid() { return Math.random().toString(36).slice(2, 10); }
-        function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function getDeviceId() {
+  let id = localStorage.getItem('survey_device_id');
+  if (!id) { id = 'dev_' + Math.random().toString(36).slice(2, 12); localStorage.setItem('survey_device_id', id); }
+  return id;
+}
 
-        function getDeviceId() {
-            let id = localStorage.getItem('survey_device_id');
-            if (!id) { id = 'dev_' + Math.random().toString(36).slice(2, 12); localStorage.setItem('survey_device_id', id); }
-            return id;
-        }
+function getDeviceInfo() {
+  const nav = navigator;
+  const scr = window.screen || {};
+  return {
+    ua: nav.userAgent || '',
+    appVersion: nav.appVersion || '',
+    platform: nav.platform || '',
+    vendor: nav.vendor || '',
+    language: nav.language || '',
+    languages: (nav.languages || []).join(', '),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+    screen: `${scr.width || 0}x${scr.height || 0}`,
+    availScreen: `${scr.availWidth || 0}x${scr.availHeight || 0}`,
+    colorDepth: scr.colorDepth || 0,
+    pixelRatio: window.devicePixelRatio || 1,
+    cores: nav.hardwareConcurrency || 0,
+    memory: nav.deviceMemory || 0,
+    touch: ('ontouchstart' in window) ? 'да' : 'нет',
+    online: nav.onLine ? 'да' : 'нет',
+    cookies: nav.cookieEnabled ? 'да' : 'нет',
+    doNotTrack: nav.doNotTrack || '—',
+    referrer: document.referrer || 'прямой заход',
+    url: location.href
+  };
+}
 
-        function getDeviceInfo() {
-            const nav = navigator;
-            const scr = window.screen || {};
-            let battery = null;
-            try {
-                if (nav.getBattery) { nav.getBattery().then(b => { battery = { level: Math.round(b.level * 100), charging: b.charging }; }); }
-            } catch (e) { }
-            return {
-                ua: nav.userAgent || '',
-                appVersion: nav.appVersion || '',
-                platform: nav.platform || '',
-                vendor: nav.vendor || '',
-                language: nav.language || '',
-                languages: (nav.languages || []).join(', '),
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
-                screen: `${scr.width || 0}x${scr.height || 0}`,
-                availScreen: `${scr.availWidth || 0}x${scr.availHeight || 0}`,
-                colorDepth: scr.colorDepth || 0,
-                pixelRatio: window.devicePixelRatio || 1,
-                cores: nav.hardwareConcurrency || 0,
-                memory: nav.deviceMemory || 0,
-                touch: ('ontouchstart' in window) ? 'да' : 'нет',
-                online: nav.onLine ? 'да' : 'нет',
-                cookies: nav.cookieEnabled ? 'да' : 'нет',
-                doNotTrack: nav.doNotTrack || '—',
-                referrer: document.referrer || 'прямой заход',
-                url: location.href,
-                startedAt: Date.now()
-            };
-        }
+function getData() { return SurveyAPI.getState(); }
+async function persist() { await SurveyAPI.saveState(SurveyAPI.getState()); }
 
-        function loadData() {
-            try {
-                const raw = localStorage.getItem(DATA_KEY);
-                if (raw) {
-                    const d = JSON.parse(raw);
-                    state.users = d.users || [];
-                    state.surveys = d.surveys || [];
-                    state.bots = d.bots || [];
-                    state.responses = d.responses || [];
-                    return;
-                }
-            } catch (e) { }
-            state.users = []; state.surveys = []; state.bots = []; state.responses = [];
-        }
-        function saveData(broadcast = true) {
-            try {
-                localStorage.setItem(DATA_KEY, JSON.stringify({
-                    users: state.users, surveys: state.surveys, bots: state.bots, responses: state.responses
-                }));
-                if (broadcast) notifyChange();
-            } catch (e) { }
-        }
+function saveSession(userId) { try { localStorage.setItem(SESSION_KEY, JSON.stringify({ userId, device: getDeviceId() })); } catch (e) {} }
+function loadSession() { try { const r = localStorage.getItem(SESSION_KEY); if (r) return JSON.parse(r); } catch (e) {} return null; }
+function clearSession() { try { localStorage.removeItem(SESSION_KEY); } catch (e) {} }
 
-        function saveSession(userId) {
-            try { localStorage.setItem(SESSION_KEY, JSON.stringify({ userId, at: Date.now(), device: getDeviceId() })); } catch (e) { }
-        }
-        function loadSession() {
-            try { const raw = localStorage.getItem(SESSION_KEY); if (raw) return JSON.parse(raw); } catch (e) { }
-            return null;
-        }
-        function clearSession() { try { localStorage.removeItem(SESSION_KEY); } catch (e) { } }
+function switchAuth(mode) {
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+  document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('authError').classList.remove('show');
+}
+function showAuthError(msg) { const el = document.getElementById('authError'); el.textContent = msg; el.classList.add('show'); }
 
-        function switchAuth(mode) {
-            document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
-            document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
-            document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
-            document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
-            document.getElementById('authError').classList.remove('show');
-            document.getElementById('bannedNotice').classList.remove('show');
-        }
-        function showAuthError(msg, banned = false) {
-            const el = document.getElementById(banned ? 'bannedNotice' : 'authError');
-            el.textContent = msg;
-            el.classList.add('show');
-        }
+async function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const pass = document.getElementById('regPassword').value;
+  const pass2 = document.getElementById('regPassword2').value;
+  if (!name || name.length < 2) return showAuthError('Имя минимум 2 символа');
+  if (!pass || pass.length < 4) return showAuthError('Пароль минимум 4 символа');
+  if (pass !== pass2) return showAuthError('Пароли не совпадают');
+  const data = await SurveyAPI.fetchState();
+  if (data.users.some(u => (u.name || '').toLowerCase() === name.toLowerCase())) return showAuthError('Имя занято');
+  const user = {
+    id: uid(), name, password: pass, avatar: '', deviceId: getDeviceId(), device: getDeviceInfo(),
+    banned: false, createdAt: Date.now(), lastLoginAt: Date.now(), loginCount: 1
+  };
+  data.users.push(user);
+  await SurveyAPI.saveState(data);
+  saveSession(user.id);
+  enterApp(user);
+}
 
-        function doRegister() {
-            const name = document.getElementById('regName').value.trim();
-            const pass = document.getElementById('regPassword').value;
-            const pass2 = document.getElementById('regPassword2').value;
-            if (!name || name.length < 2) return showAuthError('Имя минимум 2 символа');
-            if (!pass || pass.length < 4) return showAuthError('Пароль минимум 4 символа');
-            if (pass !== pass2) return showAuthError('Пароли не совпадают');
-            loadData();
-            if (state.users.some(u => (u.name || '').toLowerCase() === name.toLowerCase())) {
-                return showAuthError('Это имя уже занято');
-            }
-            const device = getDeviceInfo();
-            const user = {
-                id: uid(),
-                name,
-                password: pass,
-                avatar: '',
-                deviceId: getDeviceId(),
-                device,
-                banned: false,
-                createdAt: Date.now(),
-                lastLoginAt: Date.now(),
-                loginCount: 1
-            };
-            state.users.push(user);
-            saveData();
-            saveSession(user.id);
-            enterApp(user);
-        }
+async function doLogin() {
+  const name = document.getElementById('loginName').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  if (!name || !pass) return showAuthError('Введите имя и пароль');
+  const data = await SurveyAPI.fetchState();
+  const user = data.users.find(u => (u.name || '').toLowerCase() === name.toLowerCase() && u.password === pass);
+  if (!user) return showAuthError('Неверное имя или пароль');
+  if (user.banned) return showAuthError('Вы заблокированы');
+  user.lastLoginAt = Date.now();
+  user.loginCount = (user.loginCount || 0) + 1;
+  user.lastDevice = getDeviceInfo();
+  await SurveyAPI.saveState(data);
+  saveSession(user.id);
+  enterApp(user);
+}
 
-        function doLogin() {
-            const name = document.getElementById('loginName').value.trim();
-            const pass = document.getElementById('loginPassword').value;
-            if (!name || !pass) return showAuthError('Введите имя и пароль');
-            loadData();
-            const user = state.users.find(u => (u.name || '').toLowerCase() === name.toLowerCase() && u.password === pass);
-            if (!user) return showAuthError('Неверное имя или пароль');
-            if (user.banned) return showAuthError('Вы заблокированы администратором', true);
-            user.lastLoginAt = Date.now();
-            user.loginCount = (user.loginCount || 0) + 1;
-            user.lastDevice = getDeviceInfo();
-            saveData();
-            saveSession(user.id);
-            enterApp(user);
-        }
+function logout() {
+  clearSession();
+  state.currentUser = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  switchAuth('login');
+}
 
-        function logout() {
-            clearSession();
-            state.currentUser = null;
-            document.getElementById('appScreen').style.display = 'none';
-            document.getElementById('authScreen').style.display = 'flex';
-            switchAuth('login');
-        }
+function enterApp(user) {
+  state.currentUser = user;
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  renderUserChip();
+  refreshAll();
+}
 
-        function enterApp(user) {
-            state.currentUser = user;
-            document.getElementById('authScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
-            renderUserChip();
-            refreshAll();
-        }
+function renderUserChip() {
+  if (!state.currentUser) return;
+  const u = state.currentUser;
+  document.getElementById('userChip').innerHTML = `<div class="av"><img src="${u.avatar || DEFAULT_AVATAR}" alt=""></div><span>${escapeHtml(u.name)}</span>`;
+}
 
-        function renderUserChip() {
-            if (!state.currentUser) return;
-            const u = state.currentUser;
-            const src = u.avatar || DEFAULT_AVATAR;
-            document.getElementById('userChip').innerHTML = `
-    <div class="av"><img src="${src}" alt=""></div>
-    <span>${escapeHtml(u.name)}</span>
-  `;
-        }
+function initAuth() {
+  document.getElementById('deviceBadge').textContent = 'ID устройства: ' + getDeviceId();
+  const sess = loadSession();
+  if (sess && sess.userId) {
+    const data = SurveyAPI.getState();
+    const user = data.users.find(u => u.id === sess.userId);
+    if (user && !user.banned) { enterApp(user); return; }
+  }
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('appScreen').style.display = 'none';
+}
 
-        function initAuth() {
-            document.getElementById('deviceBadge').textContent = 'ID устройства: ' + getDeviceId();
-            const sess = loadSession();
-            if (sess && sess.userId) {
-                loadData();
-                const user = state.users.find(u => u.id === sess.userId);
-                if (user && !user.banned) { enterApp(user); return; }
-            }
-            document.getElementById('authScreen').style.display = 'flex';
-            document.getElementById('appScreen').style.display = 'none';
-        }
+function mySurveys() { return getData().surveys.filter(s => s.ownerId === state.currentUser.id); }
+function myBots() { return getData().bots.filter(b => b.ownerId === state.currentUser.id); }
 
-        function mySurveys() { return state.surveys.filter(s => s.ownerId === state.currentUser.id); }
-        function myBots() { return state.bots.filter(b => b.ownerId === state.currentUser.id); }
+function updateStats() {
+  document.getElementById('surveyCount').textContent = mySurveys().length;
+  document.getElementById('botCount').textContent = myBots().length;
+  document.getElementById('allSurveyCount').textContent = getData().surveys.length;
+  updateSelectedBotsUI();
+}
 
-        function updateStats() {
-            document.getElementById('surveyCount').textContent = mySurveys().length;
-            document.getElementById('botCount').textContent = myBots().length;
-            document.getElementById('allSurveyCount').textContent = state.surveys.length;
-            updateSelectedBotsUI();
-        }
+function addQuestion() {
+  const id = 'q_' + (++state.questionCounter);
+  state.editingOptions[id] = { text: '', type: 'closed', multi: false, options: ['', ''] };
+  window.__qDraft = window.__qDraft || {};
+  window.__qDraft[id] = state.editingOptions[id];
+  renderQuestionsEditor();
+}
 
-        function addQuestion() {
-            const id = 'q_' + (++state.questionCounter);
-            state.editingOptions[id] = { text: '', type: 'closed', multi: false, options: ['', ''] };
-            window.__qDraft = window.__qDraft || {};
-            window.__qDraft[id] = state.editingOptions[id];
-            renderQuestionsEditor();
-        }
-
-        function renderQuestionsEditor() {
-            const box = document.getElementById('questionsEditor');
-            const draft = window.__qDraft || {};
-            const ids = Object.keys(draft);
-            box.innerHTML = '';
-            ids.forEach((qid, idx) => {
-                const q = draft[qid];
-                const block = document.createElement('div');
-                block.className = 'question-block';
-                block.innerHTML = `
+function renderQuestionsEditor() {
+  const box = document.getElementById('questionsEditor');
+  const draft = window.__qDraft || {};
+  const ids = Object.keys(draft);
+  box.innerHTML = '';
+  ids.forEach((qid, idx) => {
+    const q = draft[qid];
+    const block = document.createElement('div');
+    block.className = 'question-block';
+    block.innerHTML = `
       <div class="row">
         <input type="text" placeholder="Вопрос ${idx + 1}" value="${escapeHtml(q.text)}" data-role="qtext">
         <select data-role="qtype">
@@ -1297,604 +416,459 @@
       </div>
       <div class="options"></div>
     `;
-                const qtext = block.querySelector('[data-role="qtext"]');
-                const qtype = block.querySelector('[data-role="qtype"]');
-                const qmulti = block.querySelector('[data-role="qmulti"]');
-                const multiwrap = block.querySelector('[data-role="multiwrap"]');
-                qtext.value = q.text;
-                qtype.value = q.type;
-                qmulti.checked = q.multi;
-                qtext.oninput = () => { q.text = qtext.value; };
-                qtype.onchange = () => {
-                    q.type = qtype.value;
-                    if (q.type !== 'closed') { q.multi = false; qmulti.checked = false; }
-                    renderQuestionsEditor();
-                };
-                qmulti.onchange = () => { q.multi = qmulti.checked; };
-                multiwrap.style.display = q.type === 'closed' ? '' : 'none';
-                block.querySelector('[data-role="delq"]').onclick = () => {
-                    delete draft[qid];
-                    renderQuestionsEditor();
-                };
-                const optBox = block.querySelector('.options');
-                if (q.type !== 'open') {
-                    q.options.forEach((o, oi) => {
-                        const orow = document.createElement('div');
-                        orow.className = 'option-row';
-                        orow.innerHTML = `
-          <input type="text" placeholder="Вариант ${oi + 1}" value="${escapeHtml(o)}">
-          <button class="secondary" data-role="delopt">✕</button>
-        `;
-                        orow.querySelector('input').oninput = (e) => { q.options[oi] = e.target.value; };
-                        orow.querySelector('[data-role="delopt"]').onclick = () => {
-                            q.options.splice(oi, 1);
-                            renderQuestionsEditor();
-                        };
-                        optBox.appendChild(orow);
-                    });
-                    const addBtn = document.createElement('button');
-                    addBtn.textContent = '+ вариант';
-                    addBtn.className = 'secondary';
-                    addBtn.onclick = () => { q.options.push(''); renderQuestionsEditor(); };
-                    optBox.appendChild(addBtn);
-                }
-                box.appendChild(block);
-            });
-        }
+    const qtext = block.querySelector('[data-role="qtext"]');
+    const qtype = block.querySelector('[data-role="qtype"]');
+    const qmulti = block.querySelector('[data-role="qmulti"]');
+    const multiwrap = block.querySelector('[data-role="multiwrap"]');
+    qtext.value = q.text;
+    qtype.value = q.type;
+    qmulti.checked = q.multi;
+    qtext.oninput = () => { q.text = qtext.value; };
+    qtype.onchange = () => { q.type = qtype.value; if (q.type !== 'closed') { q.multi = false; qmulti.checked = false; } renderQuestionsEditor(); };
+    qmulti.onchange = () => { q.multi = qmulti.checked; };
+    multiwrap.style.display = q.type === 'closed' ? '' : 'none';
+    block.querySelector('[data-role="delq"]').onclick = () => { delete draft[qid]; renderQuestionsEditor(); };
+    const optBox = block.querySelector('.options');
+    if (q.type !== 'open') {
+      q.options.forEach((o, oi) => {
+        const orow = document.createElement('div');
+        orow.className = 'option-row';
+        orow.innerHTML = `<input type="text" placeholder="Вариант ${oi + 1}" value="${escapeHtml(o)}"><button class="secondary" data-role="delopt">✕</button>`;
+        orow.querySelector('input').oninput = (e) => { q.options[oi] = e.target.value; };
+        orow.querySelector('[data-role="delopt"]').onclick = () => { q.options.splice(oi, 1); renderQuestionsEditor(); };
+        optBox.appendChild(orow);
+      });
+      const addBtn = document.createElement('button');
+      addBtn.textContent = '+ вариант';
+      addBtn.className = 'secondary';
+      addBtn.onclick = () => { q.options.push(''); renderQuestionsEditor(); };
+      optBox.appendChild(addBtn);
+    }
+    box.appendChild(block);
+  });
+}
 
-        function saveSurvey() {
-            const title = document.getElementById('surveyTitle').value.trim();
-            if (!title) { alert('Введите название анкеты'); return; }
-            const draft = window.__qDraft || {};
-            const ids = Object.keys(draft);
-            if (!ids.length) { alert('Добавьте хотя бы один вопрос'); return; }
-            const questions = [];
-            for (const qid of ids) {
-                const q = draft[qid];
-                const text = (q.text || '').trim();
-                if (!text) { alert('Заполните текст всех вопросов'); return; }
-                let options = [];
-                if (q.type !== 'open') {
-                    options = (q.options || []).map(o => o.trim()).filter(Boolean);
-                    if (options.length < 2) { alert('Минимум 2 варианта: ' + text); return; }
-                }
-                questions.push({ id: qid, text, type: q.type, multi: !!q.multi, options });
-            }
-            loadData();
-            const me = state.users.find(u => u.id === state.currentUser.id);
-            if (!me || me.banned) { alert('Ваш аккаунт заблокирован. Создание анкет недоступно.'); return; }
-            state.surveys.push({
-                id: uid(), title, questions,
-                ownerId: state.currentUser.id,
-                ownerName: state.currentUser.name,
-                createdAt: Date.now()
-            });
-            window.__qDraft = {};
-            document.getElementById('surveyTitle').value = '';
-            renderQuestionsEditor();
-            saveData();
-            refreshAll();
-            alert('Анкета сохранена и доступна всем пользователям.');
-        }
+async function saveSurvey() {
+  const title = document.getElementById('surveyTitle').value.trim();
+  if (!title) { alert('Введите название'); return; }
+  const draft = window.__qDraft || {};
+  const ids = Object.keys(draft);
+  if (!ids.length) { alert('Добавьте вопрос'); return; }
+  const questions = [];
+  for (const qid of ids) {
+    const q = draft[qid];
+    const text = (q.text || '').trim();
+    if (!text) { alert('Заполните вопросы'); return; }
+    let options = [];
+    if (q.type !== 'open') {
+      options = (q.options || []).map(o => o.trim()).filter(Boolean);
+      if (options.length < 2) { alert('Минимум 2 варианта: ' + text); return; }
+    }
+    questions.push({ id: qid, text, type: q.type, multi: !!q.multi, options });
+  }
+  const data = await SurveyAPI.fetchState();
+  const me = data.users.find(u => u.id === state.currentUser.id);
+  if (!me || me.banned) { alert('Аккаунт заблокирован'); return; }
+  data.surveys.push({ id: uid(), title, questions, ownerId: state.currentUser.id, ownerName: state.currentUser.name, createdAt: Date.now() });
+  await SurveyAPI.saveState(data);
+  window.__qDraft = {};
+  document.getElementById('surveyTitle').value = '';
+  renderQuestionsEditor();
+  refreshAll();
+  alert('Анкета сохранена и доступна на всех устройствах.');
+}
 
-        function renderSurveyList() {
-            const box = document.getElementById('surveyList');
-            const mine = mySurveys();
-            if (!mine.length) { box.innerHTML = '<p class="muted">Нет анкет</p>'; return; }
-            box.innerHTML = '';
-            mine.forEach(s => {
-                const div = document.createElement('div');
-                div.className = 'list-item';
-                div.innerHTML = `
-      <div>
-        <strong>${escapeHtml(s.title)}</strong>
-        <div class="muted">Вопросов: ${s.questions.length} | Ответов: ${state.responses.filter(r => r.surveyId === s.id).length}</div>
-      </div>
-      <button class="danger" data-id="${s.id}">Удалить</button>
-    `;
-                div.querySelector('button').onclick = () => deleteSurvey(s.id);
-                box.appendChild(div);
-            });
-        }
+function renderSurveyList() {
+  const box = document.getElementById('surveyList');
+  const mine = mySurveys();
+  if (!mine.length) { box.innerHTML = '<p class="muted">Нет анкет</p>'; return; }
+  box.innerHTML = '';
+  mine.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<div><strong>${escapeHtml(s.title)}</strong><div class="muted">Вопросов: ${s.questions.length} | Ответов: ${getData().responses.filter(r => r.surveyId === s.id).length}</div></div><button class="danger" onclick="deleteSurvey('${s.id}')">Удалить</button>`;
+    box.appendChild(div);
+  });
+}
 
-        function renderAllSurveys() {
-            const box = document.getElementById('allSurveyList');
-            if (!state.surveys.length) { box.innerHTML = '<p class="muted">Нет анкет в системе</p>'; return; }
-            box.innerHTML = '';
-            state.surveys.forEach(s => {
-                const isMine = s.ownerId === state.currentUser.id;
-                const owner = state.users.find(u => u.id === s.ownerId);
-                const ownerName = owner ? owner.name : (s.ownerName || 'Неизвестный');
-                const isBanned = owner && owner.banned;
-                const div = document.createElement('div');
-                div.className = 'list-item';
-                div.innerHTML = `
-      <div>
-        <strong>${escapeHtml(s.title)}</strong>
-        <span class="badge ${isMine ? 'mine' : 'other'}">${isMine ? 'моя' : escapeHtml(ownerName) + (isBanned ? ' (забанен)' : '')}</span>
-        <div class="muted">Вопросов: ${s.questions.length} | Ответов: ${state.responses.filter(r => r.surveyId === s.id).length}</div>
-      </div>
-      ${isMine ? `<button class="danger" onclick="deleteSurvey('${s.id}')">Удалить</button>` : ''}
-    `;
-                box.appendChild(div);
-            });
-        }
+function renderAllSurveys() {
+  const box = document.getElementById('allSurveyList');
+  const data = getData();
+  if (!data.surveys.length) { box.innerHTML = '<p class="muted">Нет анкет</p>'; return; }
+  box.innerHTML = '';
+  data.surveys.forEach(s => {
+    const isMine = s.ownerId === state.currentUser.id;
+    const owner = data.users.find(u => u.id === s.ownerId);
+    const ownerName = owner ? owner.name : (s.ownerName || 'Неизвестный');
+    const isBanned = owner && owner.banned;
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = `<div><strong>${escapeHtml(s.title)}</strong> <span class="badge ${isMine ? 'mine' : 'other'}">${isMine ? 'моя' : escapeHtml(ownerName) + (isBanned ? ' (бан)' : '')}</span><div class="muted">Вопросов: ${s.questions.length} | Ответов: ${data.responses.filter(r => r.surveyId === s.id).length}</div></div>${isMine ? `<button class="danger" onclick="deleteSurvey('${s.id}')">Удалить</button>` : ''}`;
+    box.appendChild(div);
+  });
+}
 
-        function deleteSurvey(id) {
-            if (!confirm('Удалить анкету и все её ответы?')) return;
-            state.surveys = state.surveys.filter(s => s.id !== id);
-            state.responses = state.responses.filter(r => r.surveyId !== id);
-            saveData();
-            refreshAll();
-        }
+async function deleteSurvey(id) {
+  if (!confirm('Удалить анкету?')) return;
+  const data = await SurveyAPI.fetchState();
+  data.surveys = data.surveys.filter(s => s.id !== id);
+  data.responses = data.responses.filter(r => r.surveyId !== id);
+  await SurveyAPI.saveState(data);
+  refreshAll();
+}
 
-        function openPublicPage() {
-            const base = window.location.href.replace(/[^/]*$/, '') + 'index.html';
-            window.open(base, '_blank');
-        }
+function handleBotAvatar(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { alert('Макс 2 МБ'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingBotAvatar = ev.target.result;
+    const img = document.getElementById('botAvatarPreview');
+    img.src = pendingBotAvatar;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
 
-        function handleBotAvatar(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (file.size > 2 * 1024 * 1024) { alert('Файл слишком большой (макс. 2 МБ)'); return; }
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                pendingBotAvatar = ev.target.result;
-                const img = document.getElementById('botAvatarPreview');
-                img.src = pendingBotAvatar;
-                img.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
+async function createBot() {
+  const name = document.getElementById('botName').value.trim();
+  if (!name) { alert('Введите имя'); return; }
+  const data = await SurveyAPI.fetchState();
+  const me = data.users.find(u => u.id === state.currentUser.id);
+  if (!me || me.banned) { alert('Аккаунт заблокирован'); return; }
+  data.bots.push({ id: uid(), name, avatar: pendingBotAvatar || '', ownerId: state.currentUser.id });
+  await SurveyAPI.saveState(data);
+  document.getElementById('botName').value = '';
+  document.getElementById('botAvatarInput').value = '';
+  document.getElementById('botAvatarPreview').src = '';
+  document.getElementById('botAvatarPreview').style.display = 'none';
+  pendingBotAvatar = '';
+  refreshAll();
+}
 
-        function createBot() {
-            const name = document.getElementById('botName').value.trim();
-            if (!name) { alert('Введите имя бота'); return; }
-            loadData();
-            const me = state.users.find(u => u.id === state.currentUser.id);
-            if (!me || me.banned) { alert('Ваш аккаунт заблокирован.'); return; }
-            state.bots.push({ id: uid(), name, avatar: pendingBotAvatar || '', ownerId: state.currentUser.id });
-            document.getElementById('botName').value = '';
-            document.getElementById('botAvatarInput').value = '';
-            const prev = document.getElementById('botAvatarPreview');
-            prev.src = ''; prev.style.display = 'none';
-            pendingBotAvatar = '';
-            saveData();
-            refreshAll();
-        }
+function toggleBotSelection(id) {
+  if (state.selectedBotIds.has(id)) state.selectedBotIds.delete(id);
+  else state.selectedBotIds.add(id);
+  renderBotList();
+  updateSelectedBotsUI();
+}
+function clearBotSelection() { state.selectedBotIds.clear(); renderBotList(); updateSelectedBotsUI(); }
 
-        function toggleBotSelection(id) {
-            if (state.selectedBotIds.has(id)) state.selectedBotIds.delete(id);
-            else state.selectedBotIds.add(id);
-            renderBotList();
-            updateSelectedBotsUI();
-        }
-        function selectAllBots() { myBots().forEach(b => state.selectedBotIds.add(b.id)); renderBotList(); updateSelectedBotsUI(); }
-        function clearBotSelection() { state.selectedBotIds.clear(); renderBotList(); updateSelectedBotsUI(); }
+function updateSelectedBotsUI() {
+  const bar = document.getElementById('botSendBar');
+  if (bar) bar.style.display = state.selectedBotIds.size > 0 ? 'block' : 'none';
+  const targetSel = document.getElementById('botTargetSurvey');
+  if (targetSel && state.currentUser) {
+    const data = getData();
+    targetSel.innerHTML = data.surveys.map(s => {
+      const owner = data.users.find(u => u.id === s.ownerId);
+      const ownerName = owner ? owner.name : (s.ownerName || '');
+      const isMine = s.ownerId === state.currentUser.id;
+      return `<option value="${s.id}">${escapeHtml(s.title)}${isMine ? ' — моя' : ' — ' + escapeHtml(ownerName)}</option>`;
+    }).join('');
+  }
+}
 
-        function updateSelectedBotsUI() {
-            const count = state.selectedBotIds.size;
-            const badge = document.getElementById('selectedBotsCount');
-            const bar = document.getElementById('botSendBar');
-            if (badge) badge.textContent = `${count} выбрано`;
-            if (bar) bar.style.display = count > 0 ? 'block' : 'none';
-            const targetSel = document.getElementById('botTargetSurvey');
-            if (targetSel && state.currentUser) {
-                const curVal = targetSel.value;
-                targetSel.innerHTML = state.surveys.map(s => {
-                    const owner = state.users.find(u => u.id === s.ownerId);
-                    const ownerName = owner ? owner.name : (s.ownerName || '');
-                    const isMine = s.ownerId === state.currentUser.id;
-                    return `<option value="${s.id}">${escapeHtml(s.title)}${isMine ? ' — моя' : ' — ' + escapeHtml(ownerName)}</option>`;
-                }).join('');
-                if (curVal && state.surveys.some(s => s.id === curVal)) targetSel.value = curVal;
-            }
-        }
+function renderBotList() {
+  const box = document.getElementById('botList');
+  const mine = myBots();
+  if (!mine.length) { box.innerHTML = '<p class="muted">Нет ботов</p>'; updateSelectedBotsUI(); return; }
+  box.innerHTML = '';
+  mine.forEach(b => {
+    const selected = state.selectedBotIds.has(b.id);
+    const div = document.createElement('div');
+    div.className = 'bot-select-item' + (selected ? ' selected' : '');
+    div.innerHTML = `<div class="bot-check"></div><div class="avatar"><img src="${b.avatar || DEFAULT_AVATAR}" alt=""></div><strong style="flex:1">${escapeHtml(b.name)}</strong><button class="danger" style="padding:5px 10px;font-size:12px" onclick="event.stopPropagation();deleteBot('${b.id}')">Удалить</button>`;
+    div.querySelector('.bot-check').onclick = (e) => { e.stopPropagation(); toggleBotSelection(b.id); };
+    div.querySelector('.avatar').onclick = () => toggleBotSelection(b.id);
+    div.querySelector('strong').onclick = () => toggleBotSelection(b.id);
+    box.appendChild(div);
+  });
+  updateSelectedBotsUI();
+}
 
-        function renderBotList() {
-            const box = document.getElementById('botList');
-            const mine = myBots();
-            if (!mine.length) { box.innerHTML = '<p class="muted">Нет ботов</p>'; updateSelectedBotsUI(); return; }
-            box.innerHTML = '';
-            mine.forEach(b => {
-                const selected = state.selectedBotIds.has(b.id);
-                const src = b.avatar || DEFAULT_AVATAR;
-                const div = document.createElement('div');
-                div.className = 'bot-select-item' + (selected ? ' selected' : '');
-                div.innerHTML = `
-      <div class="bot-check"></div>
-      <div class="avatar"><img src="${src}" alt=""></div>
-      <strong style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(b.name)}</strong>
-      <button class="danger" data-id="${b.id}" style="padding:5px 10px;font-size:12px;flex-shrink:0">Удалить</button>
-    `;
-                div.querySelector('.bot-check').onclick = (e) => { e.stopPropagation(); toggleBotSelection(b.id); };
-                div.querySelector('.avatar').onclick = () => toggleBotSelection(b.id);
-                div.querySelector('strong').onclick = () => toggleBotSelection(b.id);
-                div.querySelector('button').onclick = (e) => { e.stopPropagation(); deleteBot(b.id); };
-                box.appendChild(div);
-            });
-            updateSelectedBotsUI();
-        }
+async function deleteBot(id) {
+  const data = await SurveyAPI.fetchState();
+  data.bots = data.bots.filter(b => b.id !== id);
+  data.responses = data.responses.filter(r => r.botId !== id);
+  state.selectedBotIds.delete(id);
+  await SurveyAPI.saveState(data);
+  refreshAll();
+}
 
-        function deleteBot(id) {
-            loadData();
-            state.bots = state.bots.filter(b => b.id !== id);
-            state.responses = state.responses.filter(r => r.botId !== id);
-            state.selectedBotIds.delete(id);
-            saveData();
-            refreshAll();
-        }
+function smartOpenAnswer(questionText) {
+  const q = questionText.toLowerCase();
+  const banks = {
+    like: ['Нравится удобство и простота использования.','Нравится скорость работы и продуманность.','Ценю качество и внимание к деталям.','Импонирует гибкость настроек.','Радует понятный интерфейс.'],
+    dislike: ['Не нравится, что приходится долго разбираться в мелочах.','Раздражает нестабильная работа.','Не хватает понятной инструкции.','Огорчает, что важные функции спрятаны глубоко.','Не устраивает отсутствие быстрой отмены.'],
+    suggest: ['Предложил бы добавить подсказки для новичков.','Хотелось бы наглядную статистику.','Советую упростить навигацию.','Стоит добавить сохранение черновиков.','Рекомендую сделать заметнее кнопку сохранения.'],
+    experience: ['Сталкивался с подобным раньше, опыт положительный.','Пользовался похожими системами, здесь аккуратнее.','Опыт есть, главное — стабильность.','Пробовал разные варианты, этот достойный.','Случалось работать с аналогами.'],
+    generic: ['В целом впечатление положительное.','Отвечаю по существу: всё логично.','Есть что улучшить, но основа хорошая.','Ответ простой: мне всё понятно и удобно.','Впечатления нормальные, без сложностей.']
+  };
+  let pool = banks.generic;
+  if (/нрав|любите|хорошо|плюс|преимуществ/.test(q) && !/не нрав|минус/.test(q)) pool = banks.like;
+  else if (/не нрав|минус|недостат|проблем/.test(q)) pool = banks.dislike;
+  else if (/предлож|идея|рекоменд|совет/.test(q)) pool = banks.suggest;
+  else if (/опыт|сталкивались|пользовались/.test(q)) pool = banks.experience;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
-        function smartOpenAnswer(questionText) {
-            const q = questionText.toLowerCase();
-            const isLike = /нрав|любите|хорошо|плюс|преимуществ|достоинств|положительн|предпочт/.test(q);
-            const isDislike = /не нрав|минус|недостат|проблем|жалоб|улучш|изменить|не устраивает/.test(q);
-            const isSuggest = /предлож|идея|рекоменд|совет|как улучшить|что добавить/.test(q);
-            const isExp = /опыт|сталкивались|пользовались|пробовали|случалось/.test(q);
-            const banks = {
-                like: ['Нравится удобство и простота использования — всё интуитивно понятно.', 'Нравится скорость работы и то, что всё сделано по-человечески.', 'Ценю качество и внимание к деталям.', 'Импонирует гибкость настроек и адаптация под задачи.', 'Радует понятный интерфейс и отсутствие лишних действий.', 'Отмечу продуманность мелочей и стабильность работы.', 'Нравится, что можно быстро разобраться без инструкции.', 'Подкупает аккуратный дизайн и логичная структура.', 'Хорошо, что есть подсказки и всё сделано для людей.', 'Ценю предсказуемость: знаешь, где что найти.'],
-                dislike: ['Не нравится, что иногда приходится долго разбираться в мелочах.', 'Раздражает нестабильная работа и непонятные ошибки.', 'Не хватает понятной инструкции, местами запутанно.', 'Огорчает, что важные функции спрятаны глубоко.', 'Не устраивает, что нет быстрой отмены действия.', 'Минус — медленная загрузка на слабом интернете.', 'Недостаток — неочевидные настройки по умолчанию.', 'Проблема в том, что ошибки описаны не по-человечески.', 'Не нравится перегруженность экранов.', 'Жалко, что нет тёмной темы.'],
-                suggest: ['Предложил бы добавить подсказки для новых пользователей.', 'Хотелось бы видеть более наглядную статистику.', 'Советую упростить навигацию и убрать лишние шаги.', 'Стоит добавить сохранение черновиков.', 'Рекомендую сделать заметнее кнопку сохранения.', 'Идея: добавить быстрый поиск.', 'Предлагаю ввести онбординг с шагами.', 'Можно добавить тёмную тему.', 'Совет: понятные сообщения об ошибках.', 'Рекомендую автосохранение ответов.'],
-                experience: ['Сталкивался с подобным раньше, опыт положительный.', 'Пользовался похожими системами, здесь аккуратнее.', 'Опыт есть, главное — стабильность.', 'Пробовал разные варианты, этот достойный.', 'Случалось работать с аналогами, есть плюсы.', 'По опыту важно, чтобы всё работало без сбоев.', 'Раньше пользовался другим сервисом, тут удобнее.', 'Опыт подсказывает: простота важнее наворотов.', 'Пробовал — остался доволен.', 'Сталкивался с похожей задачей, решение адекватное.'],
-                generic: ['В целом впечатление положительное, всё понятно.', 'Отвечаю по существу: всё устроено логично.', 'Скажу так — есть что улучшить, но основа хорошая.', 'Ответ простой: мне всё понятно и удобно.', 'Впечатления нормальные, без сложностей.', 'Если коротко — пользоваться можно и приятно.', 'По сути вопроса: всё работает как надо.', 'Скажу честно: ожидал худшего, приятно удивлён.', 'Мнение положительное, есть мелкие нюансы.', 'В целом — достойно, есть куда расти.']
-            };
-            let pool = banks.generic;
-            if (isLike && !isDislike) pool = banks.like;
-            else if (isDislike) pool = banks.dislike;
-            else if (isSuggest) pool = banks.suggest;
-            else if (isExp) pool = banks.experience;
-            return pool[Math.floor(Math.random() * pool.length)];
-        }
+function generateAnswers(survey) {
+  const answers = {};
+  survey.questions.forEach(q => {
+    if (q.type === 'open') answers[q.id] = smartOpenAnswer(q.text);
+    else if (q.type === 'semi') {
+      const useOwn = Math.random() < 0.3;
+      if (useOwn) answers[q.id] = smartOpenAnswer(q.text);
+      else if (q.multi) { const count = 1 + Math.floor(Math.random() * Math.max(1, q.options.length - 1)); answers[q.id] = q.options.slice().sort(() => Math.random() - 0.5).slice(0, count); }
+      else answers[q.id] = q.options[Math.floor(Math.random() * q.options.length)];
+    } else {
+      if (q.multi) { const count = 1 + Math.floor(Math.random() * Math.max(1, q.options.length - 1)); answers[q.id] = q.options.slice().sort(() => Math.random() - 0.5).slice(0, count); }
+      else answers[q.id] = q.options[Math.floor(Math.random() * q.options.length)];
+    }
+  });
+  return answers;
+}
 
-        function generateAnswers(survey) {
-            const answers = {};
-            survey.questions.forEach(q => {
-                if (q.type === 'open') answers[q.id] = smartOpenAnswer(q.text);
-                else if (q.type === 'semi') {
-                    const useOwn = Math.random() < 0.3;
-                    if (useOwn) answers[q.id] = smartOpenAnswer(q.text);
-                    else if (q.multi) {
-                        const count = 1 + Math.floor(Math.random() * Math.max(1, q.options.length - 1));
-                        answers[q.id] = q.options.slice().sort(() => Math.random() - 0.5).slice(0, count);
-                    } else answers[q.id] = q.options[Math.floor(Math.random() * q.options.length)];
-                } else {
-                    if (q.multi) {
-                        const count = 1 + Math.floor(Math.random() * Math.max(1, q.options.length - 1));
-                        answers[q.id] = q.options.slice().sort(() => Math.random() - 0.5).slice(0, count);
-                    } else answers[q.id] = q.options[Math.floor(Math.random() * q.options.length)];
-                }
-            });
-            return answers;
-        }
+async function runAllBotsMine() {
+  const data = await SurveyAPI.fetchState();
+  const bots = data.bots.filter(b => b.ownerId === state.currentUser.id);
+  if (!bots.length) { alert('Создайте ботов'); return; }
+  if (!data.surveys.length) { alert('Нет анкет'); return; }
+  bots.forEach(bot => {
+    data.surveys.forEach(survey => {
+      const owner = data.users.find(u => u.id === survey.ownerId);
+      if (owner && owner.banned) return;
+      data.responses.push({ id: uid(), surveyId: survey.id, botId: bot.id, botName: bot.name, avatar: bot.avatar || '', source: 'bot', answers: generateAnswers(survey), createdAt: Date.now() });
+    });
+  });
+  await SurveyAPI.saveState(data);
+  refreshAll();
+  alert('Боты прошли все анкеты!');
+}
 
-        function runAllBotsMine() {
-            loadData();
-            const bots = state.bots.filter(b => b.ownerId === state.currentUser.id);
-            if (!bots.length) { alert('Сначала создайте ботов'); return; }
-            if (!state.surveys.length) { alert('Нет анкет в системе'); return; }
-            bots.forEach(bot => {
-                state.surveys.forEach(survey => {
-                    const owner = state.users.find(u => u.id === survey.ownerId);
-                    if (owner && owner.banned) return;
-                    state.responses.push({ id: uid(), surveyId: survey.id, botId: bot.id, botName: bot.name, avatar: bot.avatar || '', source: 'bot', answers: generateAnswers(survey), createdAt: Date.now() });
-                });
-            });
-            saveData();
-            refreshAll();
-            alert('Мои боты прошли все доступные анкеты!');
-        }
+async function sendSelectedBotsToSurvey() {
+  const data = await SurveyAPI.fetchState();
+  if (!state.selectedBotIds.size) { alert('Выберите ботов'); return; }
+  const surveyId = document.getElementById('botTargetSurvey').value;
+  const survey = data.surveys.find(s => s.id === surveyId);
+  if (!survey) { alert('Выберите анкету'); return; }
+  const bots = data.bots.filter(b => b.ownerId === state.currentUser.id && state.selectedBotIds.has(b.id));
+  bots.forEach(bot => {
+    data.responses.push({ id: uid(), surveyId: survey.id, botId: bot.id, botName: bot.name, avatar: bot.avatar || '', source: 'bot', answers: generateAnswers(survey), createdAt: Date.now() });
+  });
+  await SurveyAPI.saveState(data);
+  refreshAll();
+  alert(`Отправлено: ${bots.length} → «${survey.title}»`);
+}
 
-        function sendSelectedBotsToSurvey() {
-            loadData();
-            if (!state.selectedBotIds.size) { alert('Выберите хотя бы одного бота'); return; }
-            const surveyId = document.getElementById('botTargetSurvey').value;
-            const survey = state.surveys.find(s => s.id === surveyId);
-            if (!survey) { alert('Выберите анкету'); return; }
-            const bots = state.bots.filter(b => b.ownerId === state.currentUser.id && state.selectedBotIds.has(b.id));
-            if (!bots.length) { alert('Выбранные боты не найдены'); return; }
-            bots.forEach(bot => {
-                state.responses.push({ id: uid(), surveyId: survey.id, botId: bot.id, botName: bot.name, avatar: bot.avatar || '', source: 'bot', answers: generateAnswers(survey), createdAt: Date.now() });
-            });
-            saveData();
-            refreshAll();
-            alert(`Отправлено ботов: ${bots.length} → «${survey.title}»`);
-        }
+function refreshSelects() {
+  const editSel = document.getElementById('editSurveySelect');
+  const resSel = document.getElementById('resultSurveySelect');
+  if (!state.currentUser) return;
+  const data = getData();
+  editSel.innerHTML = mySurveys().map(s => `<option value="${s.id}">${escapeHtml(s.title)}</option>`).join('');
+  resSel.innerHTML = data.surveys.map(s => {
+    const isMine = s.ownerId === state.currentUser.id;
+    const owner = data.users.find(u => u.id === s.ownerId);
+    const ownerName = owner ? owner.name : (s.ownerName || '');
+    return `<option value="${s.id}">${escapeHtml(s.title)}${isMine ? ' — моя' : ' — ' + escapeHtml(ownerName)}</option>`;
+  }).join('');
+  updateSelectedBotsUI();
+  renderResponsesEdit();
+  renderResults();
+}
 
-        function refreshSelects() {
-            const editSel = document.getElementById('editSurveySelect');
-            const resSel = document.getElementById('resultSurveySelect');
-            if (!state.currentUser) return;
-            editSel.innerHTML = mySurveys().map(s => `<option value="${s.id}">${escapeHtml(s.title)}</option>`).join('');
-            resSel.innerHTML = state.surveys.map(s => {
-                const isMine = s.ownerId === state.currentUser.id;
-                const owner = state.users.find(u => u.id === s.ownerId);
-                const ownerName = owner ? owner.name : (s.ownerName || '');
-                return `<option value="${s.id}">${escapeHtml(s.title)}${isMine ? ' — моя' : ' — ' + escapeHtml(ownerName)}</option>`;
-            }).join('');
-            updateSelectedBotsUI();
-            renderResponsesEdit();
-            renderResults();
-        }
+function renderResponsesEdit() {
+  const sId = document.getElementById('editSurveySelect').value;
+  const box = document.getElementById('responsesEditBox');
+  const data = getData();
+  const survey = data.surveys.find(s => s.id === sId);
+  if (!survey) { box.innerHTML = '<p class="muted">Выберите анкету</p>'; return; }
+  if (survey.ownerId !== state.currentUser.id) { box.innerHTML = '<p class="muted">Только свои анкеты</p>'; return; }
+  const responses = data.responses.filter(r => r.surveyId === sId);
+  if (!responses.length) { box.innerHTML = '<p class="muted">Нет ответов</p>'; return; }
+  box.innerHTML = '';
+  responses.slice().reverse().forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'answer-edit';
+    const src = r.avatar || DEFAULT_AVATAR;
+    div.innerHTML = `<div class="flex-between" style="margin-bottom:8px"><div class="bot-row"><div class="avatar"><img src="${src}" alt=""></div><div><strong>${escapeHtml(r.botName)}</strong><div class="muted">${new Date(r.createdAt).toLocaleString()}</div></div></div><div class="row" style="margin:0"><button class="secondary" data-role="save">Сохранить</button><button class="danger" data-role="del">Удалить</button></div></div><div class="edit-questions"></div>`;
+    const qBox = div.querySelector('.edit-questions');
+    survey.questions.forEach((q, idx) => {
+      const block = document.createElement('div');
+      block.className = 'question-block';
+      const cur = r.answers[q.id];
+      let inner = `<div><strong>${idx + 1}. ${escapeHtml(q.text)}</strong></div>`;
+      if (q.type === 'open') inner += `<input type="text" data-qid="${q.id}" data-type="open" value="${escapeHtml(cur || '')}" style="width:100%;margin-top:6px">`;
+      else if (q.type === 'semi') {
+        const curArr = Array.isArray(cur) ? cur : (cur ? [cur] : []);
+        if (q.multi) q.options.forEach(o => { inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-multi" ${curArr.includes(o) ? 'checked' : ''}> ${escapeHtml(o)}</label>`; });
+        else q.options.forEach(o => { inner += `<label><input type="radio" name="e_${r.id}_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-single" ${curArr.includes(o) ? 'checked' : ''}> ${escapeHtml(o)}</label>`; });
+        const ownVal = curArr.find(v => !q.options.includes(v)) || '';
+        inner += `<input type="text" data-qid="${q.id}" data-type="semi-own" value="${escapeHtml(ownVal)}" placeholder="Свой вариант" style="width:100%;margin-top:6px">`;
+      } else {
+        const curArr = Array.isArray(cur) ? cur : (cur ? [cur] : []);
+        if (q.multi) q.options.forEach(o => { inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-multi" ${curArr.includes(o) ? 'checked' : ''}> ${escapeHtml(o)}</label>`; });
+        else q.options.forEach(o => { inner += `<label><input type="radio" name="e_${r.id}_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-single" ${curArr.includes(o) ? 'checked' : ''}> ${escapeHtml(o)}</label>`; });
+      }
+      block.innerHTML = inner;
+      qBox.appendChild(block);
+    });
+    div.querySelector('[data-role="save"]').onclick = () => saveEditedResponse(r.id, survey, div);
+    div.querySelector('[data-role="del"]').onclick = () => deleteResponse(r.id);
+    box.appendChild(div);
+  });
+}
 
-        function renderResponsesEdit() {
-            const sId = document.getElementById('editSurveySelect').value;
-            const box = document.getElementById('responsesEditBox');
-            const survey = state.surveys.find(s => s.id === sId);
-            if (!survey) { box.innerHTML = '<p class="muted">Выберите анкету</p>'; return; }
-            if (survey.ownerId !== state.currentUser.id) { box.innerHTML = '<p class="muted">Редактировать можно только свои анкеты.</p>'; return; }
-            const responses = state.responses.filter(r => r.surveyId === sId);
-            if (!responses.length) { box.innerHTML = '<p class="muted">Нет ответов</p>'; return; }
-            box.innerHTML = '';
-            responses.slice().reverse().forEach(r => {
-                const div = document.createElement('div');
-                div.className = 'answer-edit';
-                const date = new Date(r.createdAt).toLocaleString();
-                const src = r.avatar || DEFAULT_AVATAR;
-                div.innerHTML = `
-      <div class="flex-between" style="margin-bottom:8px">
-        <div class="bot-row">
-          <div class="avatar"><img src="${src}" alt=""></div>
-          <div><strong>${escapeHtml(r.botName)}</strong><div class="muted">${date}</div></div>
-        </div>
-        <div class="row" style="margin:0">
-          <button class="secondary" data-role="save" data-id="${r.id}">Сохранить</button>
-          <button class="danger" data-role="del" data-id="${r.id}">Удалить</button>
-        </div>
-      </div>
-      <div class="edit-questions"></div>
-    `;
-                const qBox = div.querySelector('.edit-questions');
-                survey.questions.forEach((q, idx) => {
-                    const block = document.createElement('div');
-                    block.className = 'question-block';
-                    const cur = r.answers[q.id];
-                    let inner = `<div><strong>${idx + 1}. ${escapeHtml(q.text)}</strong></div>`;
-                    if (q.type === 'open') inner += `<input type="text" data-qid="${q.id}" data-type="open" value="${escapeHtml(cur || '')}" style="width:100%;margin-top:6px">`;
-                    else if (q.type === 'semi') {
-                        const curArr = Array.isArray(cur) ? cur : (cur ? [cur] : []);
-                        if (q.multi) q.options.forEach(o => { const checked = curArr.includes(o) ? 'checked' : ''; inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-multi" ${checked}> ${escapeHtml(o)}</label>`; });
-                        else q.options.forEach(o => { const checked = curArr.includes(o) ? 'checked' : ''; inner += `<label><input type="radio" name="edit_${r.id}_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="semi-single" ${checked}> ${escapeHtml(o)}</label>`; });
-                        const ownVal = curArr.find(v => !q.options.includes(v)) || '';
-                        inner += `<input type="text" data-qid="${q.id}" data-type="semi-own" value="${escapeHtml(ownVal)}" placeholder="Свой вариант" style="width:100%;margin-top:6px">`;
-                    } else {
-                        const curArr = Array.isArray(cur) ? cur : (cur ? [cur] : []);
-                        if (q.multi) q.options.forEach(o => { const checked = curArr.includes(o) ? 'checked' : ''; inner += `<label><input type="checkbox" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-multi" ${checked}> ${escapeHtml(o)}</label>`; });
-                        else q.options.forEach(o => { const checked = curArr.includes(o) ? 'checked' : ''; inner += `<label><input type="radio" name="edit_${r.id}_${q.id}" value="${escapeHtml(o)}" data-qid="${q.id}" data-type="closed-single" ${checked}> ${escapeHtml(o)}</label>`; });
-                    }
-                    block.innerHTML = inner;
-                    qBox.appendChild(block);
-                });
-                div.querySelector('[data-role="save"]').onclick = () => saveEditedResponse(r.id, survey, div);
-                div.querySelector('[data-role="del"]').onclick = () => deleteResponse(r.id);
-                box.appendChild(div);
-            });
-        }
+function collectAnswers(survey, container) {
+  const answers = {};
+  survey.questions.forEach(q => {
+    if (q.type === 'open') { const el = container.querySelector(`input[data-qid="${q.id}"][data-type="open"]`); answers[q.id] = el ? el.value.trim() : ''; }
+    else if (q.type === 'semi') {
+      const own = container.querySelector(`input[data-qid="${q.id}"][data-type="semi-own"]`);
+      const ownVal = own ? own.value.trim() : '';
+      if (q.multi) { const els = container.querySelectorAll(`input[data-qid="${q.id}"][data-type="semi-multi"]:checked`); const arr = Array.from(els).map(e => e.value); if (ownVal) arr.push(ownVal); answers[q.id] = arr; }
+      else { const el = container.querySelector(`input[data-qid="${q.id}"][data-type="semi-single"]:checked`); answers[q.id] = ownVal || (el ? el.value : ''); }
+    } else {
+      if (q.multi) { const els = container.querySelectorAll(`input[data-qid="${q.id}"][data-type="closed-multi"]:checked`); answers[q.id] = Array.from(els).map(e => e.value); }
+      else { const el = container.querySelector(`input[data-qid="${q.id}"][data-type="closed-single"]:checked`); answers[q.id] = el ? el.value : ''; }
+    }
+  });
+  return answers;
+}
 
-        function collectAnswersFromEdit(survey, container) {
-            const answers = {};
-            survey.questions.forEach(q => {
-                if (q.type === 'open') {
-                    const el = container.querySelector(`input[data-qid="${q.id}"][data-type="open"]`);
-                    answers[q.id] = el ? el.value.trim() : '';
-                } else if (q.type === 'semi') {
-                    const own = container.querySelector(`input[data-qid="${q.id}"][data-type="semi-own"]`);
-                    const ownVal = own ? own.value.trim() : '';
-                    if (q.multi) {
-                        const els = container.querySelectorAll(`input[data-qid="${q.id}"][data-type="semi-multi"]:checked`);
-                        const arr = Array.from(els).map(e => e.value);
-                        if (ownVal) arr.push(ownVal);
-                        answers[q.id] = arr;
-                    } else {
-                        const el = container.querySelector(`input[data-qid="${q.id}"][data-type="semi-single"]:checked`);
-                        answers[q.id] = ownVal || (el ? el.value : '');
-                    }
-                } else {
-                    if (q.multi) {
-                        const els = container.querySelectorAll(`input[data-qid="${q.id}"][data-type="closed-multi"]:checked`);
-                        answers[q.id] = Array.from(els).map(e => e.value);
-                    } else {
-                        const el = container.querySelector(`input[data-qid="${q.id}"][data-type="closed-single"]:checked`);
-                        answers[q.id] = el ? el.value : '';
-                    }
-                }
-            });
-            return answers;
-        }
+async function saveEditedResponse(id, survey, container) {
+  const data = await SurveyAPI.fetchState();
+  const r = data.responses.find(x => x.id === id);
+  if (!r) return;
+  r.answers = collectAnswers(survey, container);
+  await SurveyAPI.saveState(data);
+  renderResults();
+  alert('Сохранено');
+}
 
-        function saveEditedResponse(id, survey, container) {
-            const r = state.responses.find(x => x.id === id);
-            if (!r) return;
-            r.answers = collectAnswersFromEdit(survey, container);
-            saveData();
-            renderResults();
-            alert('Ответ сохранён');
-        }
+async function deleteResponse(id) {
+  if (!confirm('Удалить ответ?')) return;
+  const data = await SurveyAPI.fetchState();
+  data.responses = data.responses.filter(r => r.id !== id);
+  await SurveyAPI.saveState(data);
+  refreshAll();
+}
 
-        function deleteResponse(id) {
-            if (!confirm('Удалить ответ?')) return;
-            state.responses = state.responses.filter(r => r.id !== id);
-            saveData();
-            refreshAll();
-        }
+function smartColors(labels, values) {
+  const palettes = [['#6366f1','#818cf8','#a5b4fc','#c7d2fe','#e0e7ff'],['#8b5cf6','#a78bfa','#c4b5fd','#ddd6fe','#ede9fe'],['#ec4899','#f472b6','#f9a8d4','#fbcfe8','#fce7f3'],['#10b981','#34d399','#6ee7b7','#a7f3d0','#d1fae5'],['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fef3c7']];
+  const max = Math.max(...values, 1);
+  return labels.map((_, i) => {
+    const intensity = Math.max(0.35, Math.min(1, (values[i] || 0) / max));
+    const palette = palettes[i % palettes.length];
+    return palette[Math.min(palette.length - 1, Math.floor((1 - intensity) * (palette.length - 1)))];
+  });
+}
+function formatAnswer(a) { if (Array.isArray(a)) return a.join(', '); return a || '—'; }
+function truncate(s, m) { if (!s) return ''; return s.length > m ? s.slice(0, m - 1) + '…' : s; }
 
-        function smartColors(labels, values) {
-            const palettes = [['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'], ['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe'], ['#ec4899', '#f472b6', '#f9a8d4', '#fbcfe8', '#fce7f3'], ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'], ['#f59e0b', '#fbbf24', '#fcd34d', '#fde68a', '#fef3c7'], ['#06b6d4', '#22d3ee', '#67e8f9', '#a5f3fc', '#cffafe']];
-            const total = values.reduce((a, b) => a + b, 0) || 1;
-            const max = Math.max(...values, 1);
-            return labels.map((_, i) => {
-                const ratio = (values[i] || 0) / total;
-                const intensity = Math.max(0.35, Math.min(1, (values[i] || 0) / max));
-                const palette = palettes[i % palettes.length];
-                const idx = Math.min(palette.length - 1, Math.floor((1 - intensity) * (palette.length - 1)));
-                if (values[i] === max) return palette[0];
-                return palette[Math.min(palette.length - 1, Math.max(1, Math.floor(ratio * 4)))] || palette[idx];
-            });
-        }
+function renderResults() {
+  const sId = document.getElementById('resultSurveySelect').value;
+  const data = getData();
+  const survey = data.surveys.find(s => s.id === sId);
+  const summaryBox = document.getElementById('resultSummary');
+  const container = document.getElementById('resultsContainer');
+  state.charts.forEach(c => c.destroy());
+  state.charts = [];
+  if (!survey) { summaryBox.innerHTML = ''; container.innerHTML = '<p class="muted">Выберите анкету</p>'; return; }
+  const responses = data.responses.filter(r => r.surveyId === sId);
+  const owner = data.users.find(u => u.id === survey.ownerId);
+  summaryBox.innerHTML = `<div class="summary-card"><div class="label">Ответов</div><div class="value">${responses.length}</div></div><div class="summary-card"><div class="label">Вопросов</div><div class="value">${survey.questions.length}</div></div><div class="summary-card"><div class="label">Автор</div><div class="value" style="font-size:16px">${escapeHtml(owner ? owner.name : (survey.ownerName || '—'))}</div></div>`;
+  if (!responses.length) { container.innerHTML = '<p class="muted">Нет ответов</p>'; return; }
+  container.innerHTML = '';
+  const chartType = document.getElementById('chartType').value;
+  const isCircular = chartType === 'doughnut' || chartType === 'pie' || chartType === 'polarArea';
+  survey.questions.forEach((q, idx) => {
+    const block = document.createElement('div');
+    block.className = 'result-block';
+    block.innerHTML = `<div class="result-header"><div class="qnum">${idx + 1}</div><h3>${escapeHtml(q.text)}</h3></div><div class="result-body"><div class="chart-wrap"><div class="chart-canvas-wrap"><canvas></canvas></div></div><div class="answers-wrap"><div class="answers-list"></div></div></div>`;
+    container.appendChild(block);
+    const counts = {};
+    responses.forEach(r => { const a = r.answers[q.id]; if (Array.isArray(a)) a.forEach(v => counts[v] = (counts[v] || 0) + 1); else if (a) counts[a] = (counts[a] || 0) + 1; });
+    let labels, values;
+    if (q.type === 'open' || q.type === 'semi') { const arr = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8); labels = arr.map(x => truncate(x[0], 24)); values = arr.map(x => x[1]); }
+    else { labels = q.options.map(o => truncate(o, 24)); values = q.options.map(l => counts[l] || 0); }
+    const canvas = block.querySelector('canvas');
+    if (!labels.length || values.every(v => v === 0)) {
+      block.querySelector('.chart-canvas-wrap').innerHTML = '<div class="muted" style="text-align:center;padding:30px">Нет данных</div>';
+    } else {
+      const ctx = canvas.getContext('2d');
+      const chart = new Chart(ctx, {
+        type: chartType === 'horizontalBar' ? 'bar' : chartType,
+        data: { labels, datasets: [{ label: 'Количество', data: values, backgroundColor: smartColors(labels, values), borderColor: isCircular ? '#fff' : 'transparent', borderWidth: isCircular ? 3 : 0, borderRadius: isCircular ? 0 : 6, maxBarThickness: 44 }] },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: chartType === 'horizontalBar' ? 'y' : 'x', plugins: { legend: { display: isCircular, position: 'bottom', labels: { font: { size: 11 } } } }, scales: isCircular ? {} : { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } }
+      });
+      state.charts.push(chart);
+    }
+    const ansList = block.querySelector('.answers-list');
+    responses.slice().reverse().forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'answer-row';
+      row.innerHTML = `<div class="avatar"><img src="${r.avatar || DEFAULT_AVATAR}" alt=""></div><div class="answer-content"><div class="q">${escapeHtml(r.botName)}</div><div class="a">${escapeHtml(formatAnswer(r.answers[q.id]))}</div></div>`;
+      ansList.appendChild(row);
+    });
+  });
+}
 
-        function formatAnswer(a) { if (Array.isArray(a)) return a.join(', '); return a || '—'; }
-        function truncate(str, max) { if (!str) return ''; return str.length > max ? str.slice(0, max - 1) + '…' : str; }
+function switchTab(tab) {
+  currentTab = tab;
+  ['surveys', 'allSurveys', 'bots', 'responses', 'results'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (!el) return;
+    el.style.display = t === tab ? '' : 'none';
+    el.classList.toggle('tab-hidden', t !== tab);
+  });
+  if (tab === 'results') renderResults();
+  if (tab === 'responses') renderResponsesEdit();
+  if (tab === 'bots') { renderBotList(); updateSelectedBotsUI(); }
+  if (tab === 'allSurveys') renderAllSurveys();
+}
 
-        function renderResults() {
-            const sId = document.getElementById('resultSurveySelect').value;
-            const survey = state.surveys.find(s => s.id === sId);
-            const summaryBox = document.getElementById('resultSummary');
-            const container = document.getElementById('resultsContainer');
-            state.charts.forEach(c => c.destroy());
-            state.charts = [];
-            if (!survey) { summaryBox.innerHTML = ''; container.innerHTML = '<p class="muted">Выберите анкету</p>'; return; }
-            const responses = state.responses.filter(r => r.surveyId === sId);
-            const owner = state.users.find(u => u.id === survey.ownerId);
-            const ownerName = owner ? owner.name : (survey.ownerName || 'Неизвестный');
-            summaryBox.innerHTML = `
-    <div class="summary-card"><div class="label">Ответов</div><div class="value">${responses.length}</div><div class="sub">всего получено</div></div>
-    <div class="summary-card"><div class="label">Вопросов</div><div class="value">${survey.questions.length}</div><div class="sub">в анкете</div></div>
-    <div class="summary-card"><div class="label">Автор</div><div class="value" style="font-size:16px">${escapeHtml(ownerName)}</div><div class="sub">создатель</div></div>
-  `;
-            if (!responses.length) { container.innerHTML = '<p class="muted">Нет ответов по этой анкете</p>'; return; }
-            container.innerHTML = '';
-            const chartType = document.getElementById('chartType').value;
-            const isCircular = chartType === 'doughnut' || chartType === 'pie' || chartType === 'polarArea';
-            survey.questions.forEach((q, idx) => {
-                const block = document.createElement('div');
-                block.className = 'result-block';
-                block.innerHTML = `
-      <div class="result-header">
-        <div class="qnum">${idx + 1}</div>
-        <h3>${escapeHtml(q.text)}</h3>
-        <span class="qbadge">${responses.length} отв.</span>
-      </div>
-      <div class="result-body">
-        <div class="chart-wrap"><div class="chart-canvas-wrap"><canvas></canvas></div></div>
-        <div class="answers-wrap">
-          <div class="answers-title">Ответы респондентов</div>
-          <div class="answers-list"></div>
-        </div>
-      </div>
-    `;
-                container.appendChild(block);
-                const counts = {};
-                responses.forEach(r => {
-                    const a = r.answers[q.id];
-                    if (Array.isArray(a)) a.forEach(v => counts[v] = (counts[v] || 0) + 1);
-                    else if (a) counts[a] = (counts[a] || 0) + 1;
-                });
-                let labels, values;
-                if (q.type === 'open' || q.type === 'semi') {
-                    const arr = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8);
-                    labels = arr.map(x => truncate(x[0], 24));
-                    values = arr.map(x => x[1]);
-                } else {
-                    labels = q.options.map(o => truncate(o, 24));
-                    values = q.options.map(l => counts[l] || 0);
-                }
-                const canvas = block.querySelector('canvas');
-                const wrap = block.querySelector('.chart-canvas-wrap');
-                if (!labels.length || values.every(v => v === 0)) {
-                    wrap.innerHTML = '<div class="empty-chart">Нет данных для диаграммы</div>';
-                } else {
-                    const ctx = canvas.getContext('2d');
-                    const colors = smartColors(labels, values);
-                    const isRadar = chartType === 'radar';
-                    const isHBar = chartType === 'horizontalBar';
-                    const baseOptions = {
-                        responsive: true, maintainAspectRatio: false,
-                        animation: { duration: 600, easing: 'easeOutQuart' },
-                        layout: { padding: { top: 4, bottom: 4, left: 4, right: 4 } },
-                        plugins: {
-                            legend: { display: isCircular, position: 'bottom', labels: { padding: 10, font: { size: 11, family: "'Segoe UI', Arial, sans-serif" }, boxWidth: 12, boxHeight: 12, usePointStyle: true, pointStyle: 'circle' } },
-                            tooltip: { backgroundColor: 'rgba(15,23,42,0.94)', padding: 10, cornerRadius: 8, titleFont: { size: 12 }, bodyFont: { size: 12 }, callbacks: { label: (c) => { const t = values.reduce((a, b) => a + b, 0) || 1; const v = isCircular ? c.parsed : (isHBar ? c.parsed.x : c.parsed.y); return ` ${v} (${Math.round(v / t * 100)}%)`; } } }
-                        }
-                    };
-                    if (isRadar) baseOptions.scales = { r: { beginAtZero: true, ticks: { precision: 0, backdropColor: 'transparent', font: { size: 10 } }, grid: { color: '#e2e8f0' }, angleLines: { color: '#e2e8f0' }, pointLabels: { font: { size: 10 }, color: '#475569' } } };
-                    else if (isHBar) { baseOptions.indexAxis = 'y'; baseOptions.scales = { x: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } }, grid: { color: '#eef2f7' } }, y: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#334155', autoSkip: false, callback: function (val) { const label = this.getLabelForValue(val); return label.length > 16 ? label.slice(0, 15) + '…' : label; } } } }; }
-                    else if (!isCircular) baseOptions.scales = { y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } }, grid: { color: '#eef2f7' } }, x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#334155', autoSkip: true, maxRotation: 45, minRotation: 0, callback: function (val) { const label = this.getLabelForValue(val); return label.length > 14 ? label.slice(0, 13) + '…' : label; } } } };
-                    const chart = new Chart(ctx, {
-                        type: isHBar ? 'bar' : chartType,
-                        data: { labels, datasets: [{ label: 'Количество', data: values, backgroundColor: colors, borderColor: isCircular ? '#fff' : 'transparent', borderWidth: isCircular ? 3 : 0, borderRadius: isCircular ? 0 : 6, borderSkipped: false, hoverOffset: isCircular ? 8 : 0, maxBarThickness: 44 }] },
-                        options: baseOptions
-                    });
-                    state.charts.push(chart);
-                }
-                const ansList = block.querySelector('.answers-list');
-                responses.slice().reverse().forEach(r => {
-                    const row = document.createElement('div');
-                    row.className = 'answer-row';
-                    const src = r.avatar || DEFAULT_AVATAR;
-                    row.innerHTML = `
-        <div class="avatar"><img src="${src}" alt=""></div>
-        <div class="answer-content">
-          <div class="q">${escapeHtml(r.botName)}</div>
-          <div class="a">${escapeHtml(formatAnswer(r.answers[q.id]))}</div>
-        </div>
-      `;
-                    ansList.appendChild(row);
-                });
-            });
-        }
+function refreshAll() {
+  if (!state.currentUser) return;
+  const data = getData();
+  const fresh = data.users.find(u => u.id === state.currentUser.id);
+  if (fresh) {
+    state.currentUser = fresh;
+    if (fresh.banned) { alert('Аккаунт заблокирован'); logout(); return; }
+  }
+  renderUserChip();
+  renderSurveyList();
+  renderAllSurveys();
+  renderBotList();
+  refreshSelects();
+  updateStats();
+}
 
-        function switchTab(tab) {
-            currentTab = tab;
-            ['surveys', 'allSurveys', 'bots', 'responses', 'results'].forEach(t => {
-                const el = document.getElementById('tab-' + t);
-                if (!el) return;
-                el.style.display = t === tab ? '' : 'none';
-                el.classList.toggle('tab-hidden', t !== tab);
-            });
-            document.querySelectorAll('.menu button').forEach(b => {
-                b.style.background = b.dataset.tab === tab ? '#eef2ff' : '';
-                b.style.color = b.dataset.tab === tab ? '#4338ca' : '';
-            });
-            if (tab === 'results') renderResults();
-            if (tab === 'responses') renderResponsesEdit();
-            if (tab === 'bots') { renderBotList(); updateSelectedBotsUI(); }
-            if (tab === 'allSurveys') renderAllSurveys();
-        }
+document.getElementById('burgerBtn').onclick = (e) => { e.stopPropagation(); document.getElementById('burgerMenu').classList.toggle('open'); };
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('burgerMenu');
+  const btn = document.getElementById('burgerBtn');
+  if (menu && !menu.contains(e.target) && e.target !== btn) menu.classList.remove('open');
+});
+document.querySelectorAll('.menu button').forEach(b => {
+  b.onclick = () => { if (b.dataset.tab) switchTab(b.dataset.tab); document.getElementById('burgerMenu').classList.remove('open'); };
+});
 
-        function refreshAll() {
-            loadData();
-            if (!state.currentUser) return;
-            const fresh = state.users.find(u => u.id === state.currentUser.id);
-            if (fresh) {
-                state.currentUser = fresh;
-                if (fresh.banned) { alert('Ваш аккаунт заблокирован администратором.'); logout(); return; }
-            }
-            renderUserChip();
-            renderSurveyList();
-            renderAllSurveys();
-            renderBotList();
-            refreshSelects();
-            updateStats();
-        }
+SurveyAPI.onChange((data, reason) => {
+  if (reason === 'fetch' && state.currentUser) {
+    const me = data.users.find(u => u.id === state.currentUser.id);
+    if (me && me.banned) { alert('Аккаунт заблокирован'); logout(); return; }
+    refreshAll();
+  }
+});
 
-        const burgerBtn = document.getElementById('burgerBtn');
-        const burgerMenu = document.getElementById('burgerMenu');
-        burgerBtn.onclick = (e) => { e.stopPropagation(); burgerMenu.classList.toggle('open'); };
-        document.addEventListener('click', (e) => { if (!burgerMenu.contains(e.target) && e.target !== burgerBtn) burgerMenu.classList.remove('open'); });
-        document.querySelectorAll('.menu button').forEach(b => {
-            b.onclick = () => { if (b.dataset.tab) switchTab(b.dataset.tab); burgerMenu.classList.remove('open'); };
-        });
-
-        function syncFromStorage() {
-            if (!state.currentUser) return;
-            loadData();
-            const me = state.users.find(u => u.id === state.currentUser.id);
-            if (me && me.banned) { alert('Ваш аккаунт заблокирован.'); logout(); return; }
-            const before = JSON.stringify({ s: state.surveys, b: state.bots, r: state.responses });
-            const after = before;
-            renderSurveyList();
-            renderAllSurveys();
-            renderBotList();
-            refreshSelects();
-            updateStats();
-        }
-
-        window.addEventListener('storage', (e) => { if (e.key === DATA_KEY) syncFromStorage(); });
-        if (channel) channel.onmessage = (e) => { if (e.data && e.data.type === 'update') syncFromStorage(); };
-        setInterval(syncFromStorage, 1000);
-        window.addEventListener('focus', syncFromStorage);
-
-        initAuth();
-    </script>
+SurveyAPI.init().then(() => {
+  initAuth();
+  setInterval(() => { if (state.currentUser) refreshAll(); }, 2000);
+});
+</script>
 </body>
-
 </html>
